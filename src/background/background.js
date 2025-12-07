@@ -5,14 +5,47 @@
 
 // Listen for messages from popup and content scripts
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('Background received message:', message.type);
+  console.log('[Job Logger Background] Received message:', message.type);
 
   switch (message.type) {
+    case 'CHECK_AUTH':
+      checkAuthentication()
+        .then(result => sendResponse(result))
+        .catch(error => {
+          console.error('[Job Logger Background] Check auth error:', error);
+          sendResponse({ authenticated: false, error: error.message });
+        });
+      return true; // Keep channel open for async response
+
+    case 'AUTHENTICATE':
+      authenticate()
+        .then(result => sendResponse(result))
+        .catch(error => {
+          console.error('[Job Logger Background] Auth error:', error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true;
+
+    case 'DISCONNECT':
+      disconnect()
+        .then(result => sendResponse(result))
+        .catch(error => sendResponse({ success: false, error: error.message }));
+      return true;
+
+    case 'LOG_APPLICATION':
+      handleLogApplication(message.data)
+        .then(result => sendResponse(result))
+        .catch(error => {
+          console.error('[Job Logger Background] Log error:', error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true;
+
     case 'SUBMIT_APPLICATION':
-      handleSubmitApplication(message.data)
+      handleLogApplication(message.data)
         .then(result => sendResponse({ success: true, data: result }))
         .catch(error => sendResponse({ success: false, error: error.message }));
-      return true; // Keep channel open for async response
+      return true;
 
     case 'CHECK_DUPLICATE':
       handleCheckDuplicate(message.company, message.role)
@@ -26,26 +59,93 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return false;
 
     case 'GET_AUTH_TOKEN':
-      getAuthToken()
+      getAuthToken(true)
         .then(token => sendResponse({ success: true, token }))
         .catch(error => sendResponse({ success: false, error: error.message }));
       return true;
 
     default:
+      console.log('[Job Logger Background] Unknown message type:', message.type);
       sendResponse({ success: false, error: 'Unknown message type' });
       return false;
   }
 });
 
 /**
+ * Check if user is authenticated (non-interactive)
+ */
+async function checkAuthentication() {
+  try {
+    const token = await getAuthToken(false); // Non-interactive
+    return { authenticated: !!token, token };
+  } catch (error) {
+    console.log('[Job Logger Background] Not authenticated:', error.message);
+    return { authenticated: false };
+  }
+}
+
+/**
+ * Authenticate with Google (interactive)
+ */
+async function authenticate() {
+  try {
+    console.log('[Job Logger Background] Starting interactive authentication...');
+    const token = await getAuthToken(true); // Interactive
+    console.log('[Job Logger Background] Got token:', token ? 'yes' : 'no');
+    
+    if (token) {
+      // Store the token
+      await chrome.storage.sync.set({ authToken: token });
+      return { success: true, token };
+    } else {
+      return { success: false, error: 'No token received' };
+    }
+  } catch (error) {
+    console.error('[Job Logger Background] Authentication failed:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Disconnect from Google
+ */
+async function disconnect() {
+  try {
+    // Get current token
+    const token = await getAuthToken(false);
+    
+    if (token) {
+      // Revoke the token
+      await chrome.identity.removeCachedAuthToken({ token });
+    }
+    
+    // Clear stored data
+    await chrome.storage.sync.remove(['authToken', 'sheetInfo']);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('[Job Logger Background] Disconnect error:', error);
+    // Still clear storage even if revoke fails
+    await chrome.storage.sync.remove(['authToken', 'sheetInfo']);
+    return { success: true };
+  }
+}
+
+/**
  * Get OAuth token for Google Sheets API
  */
-async function getAuthToken() {
+function getAuthToken(interactive = false) {
   return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive: false }, (token) => {
+    console.log('[Job Logger Background] Getting auth token, interactive:', interactive);
+    
+    chrome.identity.getAuthToken({ interactive }, (token) => {
       if (chrome.runtime.lastError) {
+        console.log('[Job Logger Background] getAuthToken error:', chrome.runtime.lastError.message);
         reject(new Error(chrome.runtime.lastError.message));
+      } else if (!token) {
+        reject(new Error('No token received'));
       } else {
+        console.log('[Job Logger Background] Token received successfully');
         resolve(token);
       }
     });
@@ -53,48 +153,77 @@ async function getAuthToken() {
 }
 
 /**
- * Submit application to Google Sheets
+ * Handle logging an application
  */
-async function handleSubmitApplication(data) {
+async function handleLogApplication(data) {
   try {
-    // Get stored settings
-    const settings = await chrome.storage.sync.get(['authToken', 'sheetInfo', 'columnMapping']);
+    console.log('[Job Logger Background] Logging application:', data);
     
-    if (!settings.authToken) {
-      throw new Error('Not authenticated. Please connect to Google Sheets.');
+    // Get token
+    let token;
+    try {
+      token = await getAuthToken(false);
+    } catch (e) {
+      console.log('[Job Logger Background] No auth token, need to authenticate');
+      return { success: false, needsAuth: true, error: 'Not authenticated. Please sign in with Google.' };
+    }
+    
+    if (!token) {
+      return { success: false, needsAuth: true, error: 'Not authenticated. Please sign in with Google.' };
     }
 
-    const sheetId = settings.sheetInfo?.id;
-    
+    // Get stored sheet info
+    const settings = await chrome.storage.sync.get(['sheetInfo']);
+    let sheetId = settings.sheetInfo?.id;
+
     // If no sheet exists yet, create one
-    if (!sheetId || sheetId === 'new') {
-      const newSheet = await createNewSheet(settings.authToken);
+    if (!sheetId) {
+      console.log('[Job Logger Background] Creating new sheet...');
+      const newSheet = await createNewSheet(token);
+      sheetId = newSheet.spreadsheetId;
+      
       await chrome.storage.sync.set({
         sheetInfo: {
-          id: newSheet.spreadsheetId,
+          id: sheetId,
           name: newSheet.properties.title,
+          url: `https://docs.google.com/spreadsheets/d/${sheetId}`,
           lastSynced: new Date().toISOString()
         }
       });
-      
-      // Add the application to the new sheet
-      await appendRow(settings.authToken, newSheet.spreadsheetId, data);
-    } else {
-      // Append to existing sheet
-      await appendRow(settings.authToken, sheetId, data);
+      console.log('[Job Logger Background] Created new sheet:', sheetId);
     }
 
+    // Append the row
+    console.log('[Job Logger Background] Appending row to sheet:', sheetId);
+    await appendRow(token, sheetId, data);
+
     // Update last synced time
+    const currentSettings = await chrome.storage.sync.get(['sheetInfo']);
     await chrome.storage.sync.set({
       sheetInfo: {
-        ...settings.sheetInfo,
+        ...currentSettings.sheetInfo,
         lastSynced: new Date().toISOString()
       }
     });
 
+    console.log('[Job Logger Background] Application logged successfully');
     return { success: true };
   } catch (error) {
-    console.error('Error submitting application:', error);
+    console.error('[Job Logger Background] Error logging application:', error);
+    
+    // Check if it's an auth error
+    if (error.message.includes('401') || error.message.includes('auth') || error.message.includes('token')) {
+      // Clear cached token and ask for re-auth
+      try {
+        const token = await getAuthToken(false);
+        if (token) {
+          await chrome.identity.removeCachedAuthToken({ token });
+        }
+      } catch (e) {}
+      
+      return { success: false, needsAuth: true, error: 'Session expired. Please sign in again.' };
+    }
+    
     throw error;
   }
 }
@@ -129,14 +258,13 @@ async function createNewSheet(token) {
               { userEnteredValue: { stringValue: 'Role' }, userEnteredFormat: { textFormat: { bold: true } } },
               { userEnteredValue: { stringValue: 'Tier' }, userEnteredFormat: { textFormat: { bold: true } } },
               { userEnteredValue: { stringValue: 'Salary' }, userEnteredFormat: { textFormat: { bold: true } } },
-              { userEnteredValue: { stringValue: 'Market Range' }, userEnteredFormat: { textFormat: { bold: true } } },
               { userEnteredValue: { stringValue: 'Location' }, userEnteredFormat: { textFormat: { bold: true } } },
               { userEnteredValue: { stringValue: 'Work Arrangement' }, userEnteredFormat: { textFormat: { bold: true } } },
               { userEnteredValue: { stringValue: 'Status' }, userEnteredFormat: { textFormat: { bold: true } } },
               { userEnteredValue: { stringValue: 'Source' }, userEnteredFormat: { textFormat: { bold: true } } },
-              { userEnteredValue: { stringValue: 'Recruiter' }, userEnteredFormat: { textFormat: { bold: true } } },
               { userEnteredValue: { stringValue: 'Notes' }, userEnteredFormat: { textFormat: { bold: true } } },
-              { userEnteredValue: { stringValue: 'Date Applied' }, userEnteredFormat: { textFormat: { bold: true } } }
+              { userEnteredValue: { stringValue: 'Date Applied' }, userEnteredFormat: { textFormat: { bold: true } } },
+              { userEnteredValue: { stringValue: 'URL' }, userEnteredFormat: { textFormat: { bold: true } } }
             ]
           }]
         }]
@@ -146,6 +274,7 @@ async function createNewSheet(token) {
 
   if (!response.ok) {
     const error = await response.json();
+    console.error('[Job Logger Background] Sheet creation error:', error);
     throw new Error(error.error?.message || 'Failed to create sheet');
   }
 
@@ -161,18 +290,19 @@ async function appendRow(token, sheetId, data) {
     data.role || '',
     data.tier || 'Tier 2',
     data.salary || '',
-    data.marketRange || '',
     data.location || '',
     data.workArrangement || '',
     data.status || 'Applied',
     data.source || '',
-    data.recruiter || '',
     data.notes || '',
-    data.dateApplied || new Date().toISOString().split('T')[0]
+    data.dateApplied || new Date().toLocaleDateString('en-US'),
+    data.url || ''
   ];
 
+  console.log('[Job Logger Background] Appending row:', rowData);
+
   const response = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Applications!A:L:append?valueInputOption=USER_ENTERED`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Applications!A:K:append?valueInputOption=USER_ENTERED`,
     {
       method: 'POST',
       headers: {
@@ -187,6 +317,7 @@ async function appendRow(token, sheetId, data) {
 
   if (!response.ok) {
     const error = await response.json();
+    console.error('[Job Logger Background] Append row error:', error);
     throw new Error(error.error?.message || 'Failed to append row');
   }
 
@@ -198,9 +329,10 @@ async function appendRow(token, sheetId, data) {
  */
 async function handleCheckDuplicate(company, role) {
   try {
-    const settings = await chrome.storage.sync.get(['authToken', 'sheetInfo']);
+    const token = await getAuthToken(false);
+    const settings = await chrome.storage.sync.get(['sheetInfo']);
     
-    if (!settings.authToken || !settings.sheetInfo?.id) {
+    if (!token || !settings.sheetInfo?.id) {
       return null; // No sheet yet, can't be duplicate
     }
 
@@ -208,7 +340,7 @@ async function handleCheckDuplicate(company, role) {
       `https://sheets.googleapis.com/v4/spreadsheets/${settings.sheetInfo.id}/values/Applications!A:B`,
       {
         headers: {
-          'Authorization': `Bearer ${settings.authToken}`
+          'Authorization': `Bearer ${token}`
         }
       }
     );
@@ -237,7 +369,7 @@ async function handleCheckDuplicate(company, role) {
 
     return null; // No duplicate found
   } catch (error) {
-    console.error('Error checking duplicate:', error);
+    console.error('[Job Logger Background] Error checking duplicate:', error);
     return null;
   }
 }
@@ -285,4 +417,4 @@ function isJobPostingPage(url) {
   return jobPatterns.some(pattern => pattern.test(url));
 }
 
-console.log('Job Logger background service worker loaded');
+console.log('[Job Logger Background] Service worker loaded');
