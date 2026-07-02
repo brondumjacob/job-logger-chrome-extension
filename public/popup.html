@@ -6,97 +6,78 @@
   <title>Job Application Logger</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+
     body {
-      width: 380px;
+      width: 400px;
       min-height: 400px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f8fafc;
     }
-    
+
     .header {
       background: linear-gradient(135deg, #1e3a5f 0%, #2e5a8f 100%);
       color: white;
-      padding: 16px;
+      padding: 14px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    
-    .header h1 { font-size: 16px; font-weight: 600; }
-    
-    .content { padding: 16px; }
-    
-    .form-group { margin-bottom: 14px; }
-    
-    .form-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 4px;
-    }
-    
-    .form-group label .required { color: #ef4444; }
-    
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-    
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: #2e5a8f;
-      box-shadow: 0 0 0 3px rgba(46, 90, 143, 0.1);
-    }
-    
-    .form-row { display: flex; gap: 12px; }
-    .form-row .form-group { flex: 1; }
-    
-    .auto-badge {
-      display: inline-block;
-      background: #dcfce7;
-      color: #166534;
+
+    .header h1 { font-size: 15px; font-weight: 600; }
+
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+
+    .dev-badge {
+      background: #fbbf24;
+      color: #78350f;
       font-size: 10px;
+      font-weight: 700;
       padding: 2px 6px;
       border-radius: 4px;
-      margin-left: 6px;
     }
-    
-    .submit-btn {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #1e3a5f 0%, #2e5a8f 100%);
-      color: white;
+
+    .icon-btn {
+      background: none;
       border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
+      color: rgba(255,255,255,0.8);
       cursor: pointer;
-      margin-top: 16px;
+      padding: 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
     }
-    
-    .submit-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
+    .icon-btn:hover { color: white; background: rgba(255,255,255,0.15); }
+
+    .content { padding: 14px 16px; }
+
+    /* Settings panel */
+    .settings-panel {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 14px;
     }
-    
-    .submit-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
+    .settings-panel h3 { font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .sheet-info { font-size: 12px; color: #64748b; margin-bottom: 10px; }
+    .sheet-info a { color: #2563eb; text-decoration: none; }
+    .sheet-info a:hover { text-decoration: underline; }
+
+    /* Auth */
+    .warning-banner {
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      color: #92400e;
     }
-    
+
     .google-btn {
       width: 100%;
-      padding: 12px;
+      padding: 11px;
       background: white;
       color: #374151;
       border: 1px solid #d1d5db;
@@ -108,88 +89,247 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
-    
-    .google-btn:hover {
-      background: #f9fafb;
-      border-color: #9ca3af;
-    }
-    
-    .google-icon {
-      width: 18px;
-      height: 18px;
-    }
-    
-    .warning-banner {
-      background: #fef3c7;
-      border: 1px solid #f59e0b;
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 16px;
-      font-size: 13px;
-      color: #92400e;
-    }
-    
-    .success-banner {
-      background: #dcfce7;
-      border: 1px solid #22c55e;
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 16px;
-      font-size: 13px;
-      color: #166534;
-    }
-    
-    .error-banner {
-      background: #fee2e2;
-      border: 1px solid #ef4444;
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 16px;
-      font-size: 13px;
-      color: #991b1b;
-    }
-    
+    .google-btn:hover { background: #f9fafb; border-color: #9ca3af; }
+    .google-icon { width: 18px; height: 18px; }
+
     .connected-banner {
       background: #dbeafe;
       border: 1px solid #3b82f6;
       border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 16px;
-      font-size: 13px;
+      padding: 9px 12px;
+      margin-bottom: 14px;
+      font-size: 12px;
       color: #1e40af;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    
     .disconnect-link {
       color: #1e40af;
       text-decoration: underline;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 11px;
     }
-    
+
+    /* Error/Success banners */
+    .error-banner {
+      background: #fee2e2;
+      border: 1px solid #ef4444;
+      border-radius: 8px;
+      padding: 9px 12px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      color: #991b1b;
+    }
+    .success-banner {
+      background: #dcfce7;
+      border: 1px solid #22c55e;
+      border-radius: 8px;
+      padding: 9px 12px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      color: #166534;
+    }
+
+    /* Form */
+    .form-group { margin-bottom: 12px; }
+
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .form-group label .required { color: #ef4444; }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      background: white;
+      color: #111827;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #2e5a8f;
+      box-shadow: 0 0 0 2px rgba(46, 90, 143, 0.12);
+    }
+
+    .form-group textarea { resize: vertical; min-height: 52px; }
+
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+
+    .auto-badge {
+      display: inline-block;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 9px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+
+    /* Submit */
+    .submit-btn {
+      width: 100%;
+      padding: 11px;
+      background: linear-gradient(135deg, #1e3a5f 0%, #2e5a8f 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
+    }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-danger {
+      width: 100%;
+      padding: 8px;
+      background: white;
+      color: #dc2626;
+      border: 1px solid #fca5a5;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-danger:hover { background: #fef2f2; }
+
     .status-text {
       text-align: center;
       color: #6b7280;
-      font-size: 13px;
-      margin-top: 8px;
+      font-size: 12px;
+      margin-top: 6px;
     }
+
+    /* Duplicate modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-box {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      width: 340px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    .modal-box h3 { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 8px; }
+    .modal-box p { font-size: 13px; color: #374151; margin-bottom: 6px; line-height: 1.5; }
+    .modal-meta { font-size: 11px; color: #6b7280; margin-bottom: 16px; }
+    .modal-actions { display: flex; flex-direction: column; gap: 8px; }
+    .btn-primary {
+      padding: 10px;
+      background: linear-gradient(135deg, #1e3a5f 0%, #2e5a8f 100%);
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary {
+      padding: 10px;
+      background: white;
+      color: #374151;
+      border: 1px solid #d1d5db;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { background: #f9fafb; }
+    .btn-cancel {
+      padding: 8px;
+      background: none;
+      color: #9ca3af;
+      border: none;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-cancel:hover { color: #6b7280; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111827;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      z-index: 200;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .toast.visible { opacity: 1; }
   </style>
 </head>
 <body>
+
+  <!-- Header -->
   <div class="header">
-    <h1>📋 Job Application Logger</h1>
+    <h1>Job Application Logger</h1>
+    <div class="header-actions">
+      <span id="dev-mode-badge" class="dev-badge" style="display:none;">DEV</span>
+      <button id="settings-btn" class="icon-btn" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
   </div>
-  
+
   <div class="content">
-    <!-- Auth section - shown when not connected -->
-    <div id="auth-section" style="display: none;">
-      <div class="warning-banner">
-        ⚠️ Connect to Google Sheets to save your applications.
+
+    <!-- Settings panel (hidden by default) -->
+    <div id="settings-panel" style="display:none;">
+      <div class="settings-panel">
+        <h3>Settings</h3>
+        <div id="sheet-info" class="sheet-info">Not connected to Google Sheets.</div>
+        <button id="btn-disconnect" class="btn-danger">Disconnect Google Sheets</button>
       </div>
+    </div>
+
+    <!-- Auth section (shown when not authenticated, prod mode only) -->
+    <div id="auth-section" style="display:none;">
+      <div class="warning-banner">Connect to Google Sheets to save your applications.</div>
       <button id="google-signin-btn" class="google-btn">
         <svg class="google-icon" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -200,43 +340,87 @@
         Sign in with Google
       </button>
     </div>
-    
-    <!-- Connected banner - shown when connected -->
-    <div id="connected-banner" class="connected-banner" style="display: none;">
-      <span>✓ Connected to Google Sheets</span>
+
+    <!-- Connected banner (shown when authenticated, prod mode) -->
+    <div id="connected-banner" class="connected-banner" style="display:none;">
+      <span>Connected to Google Sheets</span>
       <span id="disconnect-link" class="disconnect-link">Disconnect</span>
     </div>
-    
-    <!-- Error banner -->
-    <div id="error-banner" class="error-banner" style="display: none;"></div>
-    
-    <!-- Success banner -->
-    <div id="success-banner" class="success-banner" style="display: none;">
-      ✓ Application logged successfully!
-    </div>
-    
+
+    <!-- Error / Success banners -->
+    <div id="error-banner" class="error-banner" style="display:none;"></div>
+    <div id="success-banner" class="success-banner" style="display:none;"></div>
+
+    <!-- Job Form -->
     <form id="job-form">
-      <div class="form-group">
-        <label>Company <span class="required">*</span> <span id="company-badge" class="auto-badge" style="display:none;">✓ Auto-detected</span></label>
-        <input type="text" id="company" placeholder="e.g. Acme Corp" required>
+
+      <div class="form-row">
+        <div class="form-group" style="flex:2">
+          <label>Company <span class="required">*</span> <span id="company-badge" class="auto-badge" style="display:none;">Auto</span></label>
+          <input type="text" id="company" placeholder="Acme Corp" required>
+        </div>
+        <div class="form-group" style="flex:1">
+          <label>Tier</label>
+          <select id="tier">
+            <option value="Tier 2">Tier 2</option>
+            <option value="Tier 1">Tier 1</option>
+            <option value="Tier 3">Tier 3</option>
+          </select>
+        </div>
       </div>
-      
+
       <div class="form-group">
-        <label>Role <span class="required">*</span> <span id="role-badge" class="auto-badge" style="display:none;">✓ Auto-detected</span></label>
-        <input type="text" id="role" placeholder="e.g. Fund Accountant" required>
+        <label>Role <span class="required">*</span> <span id="role-badge" class="auto-badge" style="display:none;">Auto</span></label>
+        <input type="text" id="role" placeholder="Fund Accountant" required>
       </div>
-      
+
       <div class="form-row">
         <div class="form-group">
-          <label>Salary</label>
-          <input type="text" id="salary" placeholder="e.g. $90,000">
+          <label>Status</label>
+          <select id="status">
+            <option value="Applied" selected>Applied</option>
+            <option value="Not Yet Applied">Not Yet Applied</option>
+            <option value="Phone Screen">Phone Screen</option>
+            <option value="Interview Scheduled">Interview Scheduled</option>
+            <option value="Interviewing">Interviewing</option>
+            <option value="Interview 1">Interview 1</option>
+            <option value="Interview 2">Interview 2</option>
+            <option value="Final Round">Final Round</option>
+            <option value="Offer">Offer</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Withdrawn">Withdrawn</option>
+            <option value="Ghosted">Ghosted</option>
+          </select>
         </div>
         <div class="form-group">
-          <label>Location <span id="location-badge" class="auto-badge" style="display:none;">✓</span></label>
-          <input type="text" id="location" placeholder="e.g. Chicago, IL">
+          <label>Source <span id="source-badge" class="auto-badge" style="display:none;">Auto</span></label>
+          <select id="source">
+            <option value="">Select...</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="Indeed">Indeed</option>
+            <option value="Glassdoor">Glassdoor</option>
+            <option value="Greenhouse">Greenhouse</option>
+            <option value="Lever">Lever</option>
+            <option value="Workday">Workday</option>
+            <option value="Company Website">Company Website</option>
+            <option value="Recruiter">Recruiter</option>
+            <option value="Referral">Referral</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
       </div>
-      
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Salary <span id="salary-badge" class="auto-badge" style="display:none;">Auto</span></label>
+          <input type="text" id="salary" placeholder="$90,000–$110,000">
+        </div>
+        <div class="form-group">
+          <label>Location <span id="location-badge" class="auto-badge" style="display:none;">Auto</span></label>
+          <input type="text" id="location" placeholder="Chicago, IL">
+        </div>
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Work Arrangement</label>
@@ -248,52 +432,54 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Status</label>
-          <select id="status">
-            <option value="Applied">Applied</option>
-            <option value="Not Yet Applied">Not Yet Applied</option>
-            <option value="Phone Screen">Phone Screen</option>
-            <option value="Interviewing">Interviewing</option>
-            <option value="Offer">Offer</option>
-            <option value="Rejected">Rejected</option>
-          </select>
+          <label>Recruiter</label>
+          <input type="text" id="recruiter" placeholder="Jane Smith">
         </div>
       </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label>Tier</label>
-          <select id="tier">
-            <option value="Tier 2">Tier 2</option>
-            <option value="Tier 1">Tier 1</option>
-            <option value="Tier 3">Tier 3</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Source <span id="source-badge" class="auto-badge" style="display:none;">✓</span></label>
-          <select id="source">
-            <option value="">Select...</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="Indeed">Indeed</option>
-            <option value="Greenhouse">Greenhouse</option>
-            <option value="Lever">Lever</option>
-            <option value="Glassdoor">Glassdoor</option>
-            <option value="Company Website">Company Website</option>
-            <option value="Recruiter">Recruiter</option>
-            <option value="Referral">Referral</option>
-          </select>
-        </div>
+
+      <div class="form-group">
+        <label>Key Details</label>
+        <input type="text" id="keyDetails" placeholder="Key requirements, perks, etc.">
       </div>
-      
+
+      <div class="form-group">
+        <label>Next Steps</label>
+        <input type="text" id="nextSteps" placeholder="Follow up on...">
+      </div>
+
       <div class="form-group">
         <label>Notes</label>
-        <input type="text" id="notes" placeholder="Any notes...">
+        <textarea id="notes" placeholder="Any additional notes..."></textarea>
       </div>
-      
-      <button type="submit" class="submit-btn" id="submit-btn">📝 Log Application</button>
+
+      <div class="form-group">
+        <label>URL <span id="url-badge" class="auto-badge" style="display:none;">Auto</span></label>
+        <input type="text" id="url" placeholder="Job posting URL">
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn">Log Application</button>
       <p class="status-text" id="status-text"></p>
     </form>
   </div>
+
+  <!-- Duplicate Modal -->
+  <div id="duplicate-modal" style="display:none;">
+    <div class="modal-overlay">
+      <div class="modal-box">
+        <h3>Duplicate Entry Found</h3>
+        <p>You already have an application for <strong id="dup-company"></strong> — <strong id="dup-role"></strong>.</p>
+        <p class="modal-meta" id="dup-meta"></p>
+        <div class="modal-actions">
+          <button id="btn-update-existing" class="btn-primary">Update Existing Entry</button>
+          <button id="btn-log-anyway" class="btn-secondary">Log Anyway (Add New)</button>
+          <button id="btn-cancel-dup" class="btn-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
 
   <script src="popup.js"></script>
 </body>

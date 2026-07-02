@@ -1,246 +1,428 @@
-// popup.js - Handles popup UI and communication with background script
+/**
+ * popup.js — Vanilla JS popup controller
+ *
+ * DEV_MODE = true  → skip OAuth, show form immediately
+ * DEV_MODE = false → check auth, show sign-in if needed
+ *
+ * All data persistence is delegated to background.js via chrome.runtime.sendMessage.
+ */
+
+const DEV_MODE = true; // Must match background.js DEV_MODE
+
+// State for duplicate resolution
+let pendingFormData = null;
+let pendingDuplicate = null;
+
+// ============================================
+// INIT
+// ============================================
 
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('[Job Logger Popup] Initializing...');
-  
-  // Check authentication status
-  checkAuthStatus();
-  
-  // Request job data from content script
-  requestJobData();
-  
-  // Set up event listeners
+
+  if (DEV_MODE) {
+    document.getElementById('dev-mode-badge').style.display = 'inline-block';
+    showForm();
+  } else {
+    await checkAuthStatus();
+  }
+
+  await populateTabUrl();
+  await requestJobData();
   setupEventListeners();
+  await loadSheetInfo();
 });
 
-// Check if user is authenticated with Google
+// ============================================
+// AUTH
+// ============================================
+
 async function checkAuthStatus() {
   try {
     const response = await chrome.runtime.sendMessage({ type: 'CHECK_AUTH' });
-    console.log('[Job Logger Popup] Auth status:', response);
     updateAuthUI(response?.authenticated || false);
-  } catch (error) {
-    console.error('[Job Logger Popup] Auth check error:', error);
+  } catch (err) {
+    console.error('[Job Logger Popup] Auth check error:', err);
     updateAuthUI(false);
   }
 }
 
-// Update UI based on authentication status
+function showForm() {
+  document.getElementById('auth-section').style.display = 'none';
+  document.getElementById('connected-banner').style.display = 'none';
+}
+
 function updateAuthUI(isAuthenticated) {
   const authSection = document.getElementById('auth-section');
   const connectedBanner = document.getElementById('connected-banner');
-  const submitBtn = document.getElementById('submit-btn');
-  
   if (isAuthenticated) {
     authSection.style.display = 'none';
     connectedBanner.style.display = 'flex';
-    submitBtn.disabled = false;
   } else {
     authSection.style.display = 'block';
     connectedBanner.style.display = 'none';
-    submitBtn.disabled = false; // Allow clicking to trigger auth flow
   }
 }
 
-// Request job data from content script
-async function requestJobData() {
+// ============================================
+// TAB / AUTO-DETECT
+// ============================================
+
+async function getActiveTab() {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
-    if (!tab?.id) {
-      console.log('[Job Logger Popup] No active tab');
+    return tab || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function populateTabUrl() {
+  const tab = await getActiveTab();
+  if (tab?.url) {
+    const urlInput = document.getElementById('url');
+    if (urlInput) {
+      urlInput.value = tab.url;
+      document.getElementById('url-badge').style.display = 'inline-block';
+    }
+  }
+}
+
+async function requestJobData() {
+  const tab = await getActiveTab();
+  if (!tab?.id) return;
+
+  chrome.tabs.sendMessage(tab.id, { type: 'GET_JOB_DATA' }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.log('[Job Logger Popup] Content script not available:', chrome.runtime.lastError.message);
       return;
     }
-    
-    console.log('[Job Logger Popup] Requesting data from tab:', tab.url);
-    
-    // Send message to content script
-    chrome.tabs.sendMessage(tab.id, { type: 'GET_JOB_DATA' }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.log('[Job Logger Popup] Content script not available:', chrome.runtime.lastError.message);
-        return;
-      }
-      
-      if (response?.data) {
-        console.log('[Job Logger Popup] Received job data:', response.data);
-        populateForm(response.data);
-      }
-    });
-  } catch (error) {
-    console.error('[Job Logger Popup] Error requesting job data:', error);
-  }
+    if (response?.data) {
+      populateForm(response.data);
+    }
+  });
 }
 
-// Populate form with scraped data
 function populateForm(data) {
   if (data.company) {
-    document.getElementById('company').value = data.company;
-    document.getElementById('company-badge').style.display = 'inline-block';
+    setValue('company', data.company);
+    show('company-badge');
   }
-  
   if (data.role) {
-    document.getElementById('role').value = data.role;
-    document.getElementById('role-badge').style.display = 'inline-block';
+    setValue('role', data.role);
+    show('role-badge');
   }
-  
   if (data.location) {
-    document.getElementById('location').value = data.location;
-    document.getElementById('location-badge').style.display = 'inline-block';
+    setValue('location', data.location);
+    show('location-badge');
   }
-  
   if (data.salary) {
-    document.getElementById('salary').value = data.salary;
+    setValue('salary', data.salary);
+    show('salary-badge');
   }
-  
   if (data.workArrangement) {
-    const select = document.getElementById('workArrangement');
-    for (let option of select.options) {
-      if (option.value.toLowerCase() === data.workArrangement.toLowerCase()) {
-        option.selected = true;
-        break;
-      }
-    }
+    selectOption('workArrangement', data.workArrangement);
   }
-  
   if (data.source) {
-    const select = document.getElementById('source');
-    for (let option of select.options) {
-      if (option.value.toLowerCase() === data.source.toLowerCase()) {
-        option.selected = true;
-        document.getElementById('source-badge').style.display = 'inline-block';
-        break;
-      }
-    }
+    const matched = selectOption('source', data.source);
+    if (matched) show('source-badge');
+  }
+  // URL already populated from tab URL, only override if scraper gives a better one
+  if (data.url && data.url !== document.getElementById('url').value) {
+    setValue('url', data.url);
   }
 }
 
-// Set up event listeners
+// ============================================
+// FORM DATA
+// ============================================
+
+function collectFormData() {
+  return {
+    company:         document.getElementById('company').value.trim(),
+    role:            document.getElementById('role').value.trim(),
+    status:          document.getElementById('status').value,
+    tier:            document.getElementById('tier').value,
+    salary:          document.getElementById('salary').value.trim(),
+    location:        document.getElementById('location').value.trim(),
+    workArrangement: document.getElementById('workArrangement').value,
+    source:          document.getElementById('source').value,
+    recruiter:       document.getElementById('recruiter').value.trim(),
+    keyDetails:      document.getElementById('keyDetails').value.trim(),
+    nextSteps:       document.getElementById('nextSteps').value.trim(),
+    notes:           document.getElementById('notes').value.trim(),
+    url:             document.getElementById('url').value.trim(),
+    dateApplied:     new Date().toLocaleDateString('en-US')
+  };
+}
+
+// ============================================
+// SUBMIT
+// ============================================
+
+async function submitApplication(formData) {
+  setSubmitState(true, 'Saving...');
+  hideError();
+
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: 'LOG_APPLICATION',
+      data: formData
+    });
+
+    if (response?.success) {
+      showToast('Application logged!');
+      document.getElementById('success-banner').textContent = 'Application logged successfully!';
+      document.getElementById('success-banner').style.display = 'block';
+      setSubmitState(false, 'Log Application');
+      setTimeout(() => {
+        document.getElementById('success-banner').style.display = 'none';
+      }, 3000);
+    } else if (response?.needsAuth) {
+      updateAuthUI(false);
+      showError('Please sign in with Google first.');
+      setSubmitState(false, 'Log Application');
+    } else {
+      showError(response?.error || 'Failed to save application.');
+      setSubmitState(false, 'Log Application');
+    }
+  } catch (err) {
+    console.error('[Job Logger Popup] Submit error:', err);
+    showError('Error: ' + err.message);
+    setSubmitState(false, 'Log Application');
+  }
+}
+
+// ============================================
+// DUPLICATE FLOW
+// ============================================
+
+function showDuplicateModal(duplicate, formData) {
+  pendingDuplicate = duplicate;
+  pendingFormData = formData;
+
+  document.getElementById('dup-company').textContent = duplicate.company;
+  document.getElementById('dup-role').textContent = duplicate.role;
+
+  const meta = [];
+  if (duplicate.status) meta.push('Status: ' + duplicate.status);
+  if (duplicate.date) meta.push('Applied: ' + duplicate.date);
+  document.getElementById('dup-meta').textContent = meta.join('  ·  ');
+
+  document.getElementById('duplicate-modal').style.display = 'block';
+}
+
+function hideDuplicateModal() {
+  document.getElementById('duplicate-modal').style.display = 'none';
+  pendingDuplicate = null;
+  pendingFormData = null;
+}
+
+// ============================================
+// SETTINGS
+// ============================================
+
+async function loadSheetInfo() {
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'GET_SHEET_INFO' });
+    const info = response?.info;
+    const el = document.getElementById('sheet-info');
+    if (info) {
+      const link = info.url && info.url !== '#'
+        ? `<a href="${info.url}" target="_blank">${info.name}</a>`
+        : `<strong>${info.name}</strong>`;
+      const rows = info.rowCount !== undefined ? ` · ${info.rowCount} rows` : '';
+      const synced = info.lastSynced
+        ? ` · Synced ${new Date(info.lastSynced).toLocaleTimeString()}`
+        : '';
+      el.innerHTML = `Connected to ${link}${rows}${synced}`;
+    } else {
+      el.textContent = 'Not connected to Google Sheets.';
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+// ============================================
+// EVENT LISTENERS
+// ============================================
+
 function setupEventListeners() {
-  // Google Sign In button
+  // Settings toggle
+  document.getElementById('settings-btn').addEventListener('click', () => {
+    const panel = document.getElementById('settings-panel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    if (panel.style.display === 'block') loadSheetInfo();
+  });
+
+  // Disconnect (settings panel)
+  document.getElementById('btn-disconnect').addEventListener('click', async () => {
+    await chrome.runtime.sendMessage({ type: 'DISCONNECT' });
+    updateAuthUI(false);
+    document.getElementById('settings-panel').style.display = 'none';
+    showToast('Disconnected from Google Sheets.');
+    loadSheetInfo();
+  });
+
+  // Google sign-in
   document.getElementById('google-signin-btn').addEventListener('click', async () => {
-    console.log('[Job Logger Popup] Sign in clicked');
     showStatus('Connecting to Google...', 'info');
-    
     try {
       const response = await chrome.runtime.sendMessage({ type: 'AUTHENTICATE' });
-      console.log('[Job Logger Popup] Auth response:', response);
-      
       if (response?.success) {
         updateAuthUI(true);
         hideError();
-        showStatus('Connected!', 'success');
+        showToast('Connected to Google Sheets!');
+        loadSheetInfo();
       } else {
-        showError(response?.error || 'Authentication failed');
+        showError(response?.error || 'Authentication failed.');
       }
-    } catch (error) {
-      console.error('[Job Logger Popup] Auth error:', error);
-      showError('Failed to connect: ' + error.message);
+    } catch (err) {
+      showError('Failed to connect: ' + err.message);
     }
   });
-  
-  // Disconnect link
+
+  // Disconnect link (in connected banner)
   document.getElementById('disconnect-link').addEventListener('click', async () => {
-    console.log('[Job Logger Popup] Disconnect clicked');
-    try {
-      await chrome.runtime.sendMessage({ type: 'DISCONNECT' });
-      updateAuthUI(false);
-      showStatus('Disconnected', 'info');
-    } catch (error) {
-      console.error('[Job Logger Popup] Disconnect error:', error);
-    }
+    await chrome.runtime.sendMessage({ type: 'DISCONNECT' });
+    updateAuthUI(false);
+    showToast('Disconnected.');
+    loadSheetInfo();
   });
-  
+
   // Form submission
   document.getElementById('job-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log('[Job Logger Popup] Form submitted');
-    
-    const submitBtn = document.getElementById('submit-btn');
-    submitBtn.disabled = true;
-    submitBtn.textContent = '⏳ Saving...';
+    const formData = collectFormData();
+
+    if (!formData.company || !formData.role) {
+      showError('Company and Role are required.');
+      return;
+    }
+
+    // Check for duplicates
+    setSubmitState(true, 'Checking...');
     hideError();
-    
-    // Gather form data
-    const formData = {
-      company: document.getElementById('company').value.trim(),
-      role: document.getElementById('role').value.trim(),
-      salary: document.getElementById('salary').value.trim(),
-      location: document.getElementById('location').value.trim(),
-      workArrangement: document.getElementById('workArrangement').value,
-      status: document.getElementById('status').value,
-      tier: document.getElementById('tier').value,
-      source: document.getElementById('source').value,
-      notes: document.getElementById('notes').value.trim(),
-      dateApplied: new Date().toLocaleDateString('en-US'),
-      url: ''
-    };
-    
-    // Get current URL
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab?.url) {
-        formData.url = tab.url;
+      const dupResponse = await chrome.runtime.sendMessage({
+        type: 'CHECK_DUPLICATE',
+        company: formData.company,
+        role: formData.role
+      });
+
+      setSubmitState(false, 'Log Application');
+
+      if (dupResponse?.success && dupResponse.isDuplicate) {
+        showDuplicateModal(dupResponse.isDuplicate, formData);
+      } else {
+        await submitApplication(formData);
       }
     } catch (err) {
-      console.log('[Job Logger Popup] Could not get URL');
+      setSubmitState(false, 'Log Application');
+      showError('Error: ' + err.message);
     }
-    
-    console.log('[Job Logger Popup] Sending data:', formData);
-    
+  });
+
+  // Duplicate modal: Update existing
+  document.getElementById('btn-update-existing').addEventListener('click', async () => {
+    const dup = pendingDuplicate;
+    const data = pendingFormData;
+    hideDuplicateModal();
+
+    if (!dup || !data) return;
+    setSubmitState(true, 'Updating...');
+
     try {
-      const response = await chrome.runtime.sendMessage({ 
-        type: 'LOG_APPLICATION', 
-        data: formData 
+      const response = await chrome.runtime.sendMessage({
+        type: 'UPDATE_EXISTING',
+        rowIndex: dup.rowIndex,
+        data
       });
-      
-      console.log('[Job Logger Popup] Log response:', response);
-      
+
+      setSubmitState(false, 'Log Application');
       if (response?.success) {
+        showToast('Entry updated!');
+        document.getElementById('success-banner').textContent = 'Entry updated successfully!';
         document.getElementById('success-banner').style.display = 'block';
-        submitBtn.textContent = '✓ Logged!';
-        showStatus('Application saved to Google Sheets!', 'success');
-        
-        // Reset after 2 seconds
-        setTimeout(() => {
-          document.getElementById('success-banner').style.display = 'none';
-          submitBtn.textContent = '📝 Log Application';
-          submitBtn.disabled = false;
-        }, 2000);
+        setTimeout(() => { document.getElementById('success-banner').style.display = 'none'; }, 3000);
       } else {
-        // Check if auth is needed
-        if (response?.error?.includes('Not authenticated') || response?.needsAuth) {
-          updateAuthUI(false);
-          showError('Please sign in with Google first');
-        } else {
-          showError(response?.error || 'Failed to save application');
-        }
-        submitBtn.textContent = '📝 Log Application';
-        submitBtn.disabled = false;
+        showError(response?.error || 'Failed to update entry.');
       }
-    } catch (error) {
-      console.error('[Job Logger Popup] Submit error:', error);
-      showError('Error: ' + error.message);
-      submitBtn.textContent = '📝 Log Application';
-      submitBtn.disabled = false;
+    } catch (err) {
+      setSubmitState(false, 'Log Application');
+      showError('Error: ' + err.message);
     }
+  });
+
+  // Duplicate modal: Log anyway
+  document.getElementById('btn-log-anyway').addEventListener('click', async () => {
+    const data = pendingFormData;
+    hideDuplicateModal();
+    if (data) await submitApplication(data);
+  });
+
+  // Duplicate modal: Cancel
+  document.getElementById('btn-cancel-dup').addEventListener('click', () => {
+    hideDuplicateModal();
+    setSubmitState(false, 'Log Application');
   });
 }
 
-// Show error message
-function showError(message) {
-  const errorBanner = document.getElementById('error-banner');
-  errorBanner.textContent = '⚠️ ' + message;
-  errorBanner.style.display = 'block';
+// ============================================
+// UI HELPERS
+// ============================================
+
+function setValue(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value;
 }
 
-// Hide error message
+function show(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'inline-block';
+}
+
+function selectOption(selectId, value) {
+  const select = document.getElementById(selectId);
+  if (!select) return false;
+  const lower = value.toLowerCase();
+  for (const opt of select.options) {
+    if (opt.value.toLowerCase() === lower) {
+      opt.selected = true;
+      return true;
+    }
+  }
+  return false;
+}
+
+function setSubmitState(disabled, text) {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = disabled;
+  btn.textContent = text;
+}
+
+function showError(message) {
+  const el = document.getElementById('error-banner');
+  el.textContent = message;
+  el.style.display = 'block';
+}
+
 function hideError() {
   document.getElementById('error-banner').style.display = 'none';
 }
 
-// Show status text
 function showStatus(message, type) {
-  const statusText = document.getElementById('status-text');
-  statusText.textContent = message;
-  statusText.style.color = type === 'success' ? '#166534' : type === 'error' ? '#991b1b' : '#6b7280';
+  const el = document.getElementById('status-text');
+  el.textContent = message;
+  el.style.color = type === 'success' ? '#166534' : type === 'error' ? '#991b1b' : '#6b7280';
+}
+
+let toastTimer;
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('visible'), 2500);
 }

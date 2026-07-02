@@ -2,6 +2,31 @@
 
 This guide walks you through setting up Google Cloud credentials for the Job Application Logger extension.
 
+## Dev Mode Quick Start (No OAuth Required)
+
+Want to test the extension immediately without Google Cloud setup?
+
+1. Make sure `DEV_MODE = true` in both:
+   - `src/background/background.js`
+   - `public/popup.js`
+2. Build and load the extension (see below)
+3. Click the extension icon — the form appears immediately, no sign-in needed
+4. Submitted applications are saved to `chrome.storage.local` (visible in DevTools → Application → Storage → Local)
+
+To switch to production (Google Sheets), set `DEV_MODE = false` in both files and complete the setup below.
+
+---
+
+## Build & Load
+
+```bash
+npm install
+npm run build
+# Then in Chrome: chrome://extensions/ → Developer mode → Load unpacked → select dist/
+```
+
+---
+
 ## Step 1: Create a Google Cloud Project
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
@@ -32,6 +57,7 @@ This guide walks you through setting up Google Cloud credentials for the Job App
    - Check `https://www.googleapis.com/auth/spreadsheets`
    - Click **Update**
 7. Click **Save and Continue** through remaining screens
+8. Under **Test users**, add your Google account
 
 ## Step 4: Create OAuth 2.0 Credentials
 
@@ -42,7 +68,7 @@ This guide walks you through setting up Google Cloud credentials for the Job App
 5. **Item ID**: You'll need your extension ID:
    - Go to `chrome://extensions/`
    - Enable Developer mode
-   - Load your unpacked extension
+   - Load your unpacked `dist/` extension
    - Copy the **ID** (looks like: `abcdefghijklmnopqrstuvwxyz123456`)
 6. Paste the extension ID
 7. Click **Create**
@@ -50,7 +76,7 @@ This guide walks you through setting up Google Cloud credentials for the Job App
 
 ## Step 5: Update manifest.json
 
-Open `manifest.json` and replace the placeholder:
+Open `manifest.json` and update the `oauth2` section:
 
 ```json
 "oauth2": {
@@ -61,17 +87,44 @@ Open `manifest.json` and replace the placeholder:
 }
 ```
 
+Then set `DEV_MODE = false` in `src/background/background.js` and `public/popup.js`, rebuild, and reload the extension.
+
 ## Step 6: Reload Extension
 
 1. Go to `chrome://extensions/`
 2. Click the refresh icon on your extension
-3. Click the extension icon → it should now prompt for Google sign-in
+3. Click the extension icon — it should now show "Sign in with Google"
+
+---
+
+## Column Layout (A–N)
+
+The auto-created Google Sheet uses this column layout:
+
+| Col | Field |
+|-----|-------|
+| A | Status |
+| B | Date Applied |
+| C | Company |
+| D | Role |
+| E | Tier |
+| F | Salary Range |
+| G | Location |
+| H | Work Arrangement |
+| I | Source |
+| J | Recruiter |
+| K | Key Details |
+| L | Next Steps |
+| M | Notes |
+| N | URL |
+
+---
 
 ## Troubleshooting
 
 ### "Access blocked: This app's request is invalid"
 - Make sure the extension ID in Google Cloud matches your actual extension ID
-- Reload the extension after updating manifest.json
+- Rebuild and reload the extension after updating `manifest.json`
 
 ### "This app isn't verified"
 - During development, this is expected
@@ -80,4 +133,8 @@ Open `manifest.json` and replace the placeholder:
 
 ### "Error: redirect_uri_mismatch"
 - The extension ID changed (happens when you reload unpacked extensions)
-- Update the Item ID in Google Cloud Console
+- Update the Item ID in Google Cloud Console to match the new ID
+
+### Extension ID changes on every reload
+- This happens if you don't set a fixed extension key in `manifest.json`
+- To pin the ID: add a `"key"` field with your extension's public key (find it in `chrome://extensions/` → Details → Extension ID area, or generate via the Chrome CRX packing tool)

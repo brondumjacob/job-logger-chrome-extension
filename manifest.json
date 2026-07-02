@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Job Application Logger",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Log job applications to Google Sheets with one click. Auto-detects job details from LinkedIn, Indeed, Greenhouse, and more.",
-  
+
   "permissions": [
     "activeTab",
     "storage",
     "identity"
   ],
-  
+
   "host_permissions": [
     "https://www.linkedin.com/*",
     "https://www.indeed.com/*",
@@ -19,12 +19,12 @@
     "https://www.glassdoor.com/*",
     "https://sheets.googleapis.com/*"
   ],
-  
+
   "background": {
     "service_worker": "src/background/background.js",
     "type": "module"
   },
-  
+
   "content_scripts": [
     {
       "matches": [
@@ -39,21 +39,21 @@
       "run_at": "document_idle"
     }
   ],
-  
+
   "action": {
-    "default_popup": "public/popup.html",
+    "default_popup": "popup.html",
     "default_icon": {
-      "16": "public/icons/icon16.png",
-      "48": "public/icons/icon48.png",
-      "128": "public/icons/icon128.png"
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
     },
     "default_title": "Log Job Application"
   },
-  
+
   "icons": {
-    "16": "public/icons/icon16.png",
-    "48": "public/icons/icon48.png",
-    "128": "public/icons/icon128.png"
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
 
   "oauth2": {
