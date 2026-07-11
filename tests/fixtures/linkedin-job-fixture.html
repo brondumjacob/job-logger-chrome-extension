@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+  Static fixture standing in for a real LinkedIn job posting page.
+  Selectors below are copied verbatim from src/content/content.js's
+  `scrapers.linkedin.scrape()` so this fixture exercises the exact same
+  DOM queries the real extension runs against linkedin.com. Test values
+  match the real job posting used during manual verification on
+  2026-07-11 (Senior Fund Accountant / 3 Bridge Networks / Boston MA
+  Remote / $150K+bonus) so harness assertions are traceable back to that
+  session, not arbitrary.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Senior Fund Accountant | 3 Bridge Networks | LinkedIn</title>
+</head>
+<body>
+  <div class="job-details-jobs-unified-top-card__container">
+    <div class="job-details-jobs-unified-top-card__job-title">
+      <h1>Senior Fund Accountant</h1>
+    </div>
+
+    <div class="job-details-jobs-unified-top-card__primary-description-container">
+      <!-- content.js selector is '.job-details-jobs-unified-top-card__company-name a'
+           (a descendant <a> inside the named container) — the class must NOT be on
+           the <a> itself, or the descendant selector won't match. -->
+      <span class="job-details-jobs-unified-top-card__company-name">
+        <a href="/company/3-bridge-networks">3 Bridge Networks</a>
+      </span>
+      <span class="job-details-jobs-unified-top-card__bullet">Boston, MA</span>
+    </div>
+
+    <div class="job-details-jobs-unified-top-card__workplace-type">Remote</div>
+
+    <div class="salary-main-rail__salary-range">$150,000/yr + Bonus</div>
+  </div>
+</body>
+</html>

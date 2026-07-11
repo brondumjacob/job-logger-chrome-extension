@@ -13,6 +13,24 @@ const DEV_MODE = true; // Must match background.js DEV_MODE
 let pendingFormData = null;
 let pendingDuplicate = null;
 
+// Mirrors manifest.json's content_scripts.matches. Duplicated here (rather than
+// imported) because popup.js is a classic, non-module script — content scripts
+// only run on these URLs, so a messaging failure elsewhere is expected/silent,
+// while a failure here means the content script should have loaded but didn't
+// (e.g. tab was open before the extension was installed/reloaded).
+const SUPPORTED_JOB_URL_PATTERNS = [
+  /^https:\/\/www\.linkedin\.com\/jobs\//,
+  /^https:\/\/www\.indeed\.com\//,
+  /^https:\/\/boards\.greenhouse\.io\//,
+  /^https:\/\/jobs\.lever\.co\//,
+  /^https:\/\/[^/]+\.myworkdayjobs\.com\//,
+  /^https:\/\/www\.glassdoor\.com\/job-listing\//,
+];
+
+function isSupportedJobPage(url) {
+  return !!url && SUPPORTED_JOB_URL_PATTERNS.some((re) => re.test(url));
+}
+
 // ============================================
 // INIT
 // ============================================
@@ -95,8 +113,18 @@ async function requestJobData() {
   chrome.tabs.sendMessage(tab.id, { type: 'GET_JOB_DATA' }, (response) => {
     if (chrome.runtime.lastError) {
       console.log('[Job Logger Popup] Content script not available:', chrome.runtime.lastError.message);
+      // On a page we should have been able to scrape, the content script simply
+      // wasn't injected — most commonly because the tab was already open before
+      // the extension was installed/reloaded. Surface that instead of leaving
+      // the user staring at a blank form that looks like a failed scrape.
+      if (isSupportedJobPage(tab.url)) {
+        showScrapeWarning("Couldn't read this page — try refreshing it, then reopen the logger.");
+      } else {
+        hideScrapeWarning();
+      }
       return;
     }
+    hideScrapeWarning();
     if (response?.data) {
       populateForm(response.data);
     }
@@ -410,6 +438,18 @@ function showError(message) {
 
 function hideError() {
   document.getElementById('error-banner').style.display = 'none';
+}
+
+function showScrapeWarning(message) {
+  const el = document.getElementById('scrape-warning');
+  if (!el) return;
+  el.textContent = message;
+  el.style.display = 'block';
+}
+
+function hideScrapeWarning() {
+  const el = document.getElementById('scrape-warning');
+  if (el) el.style.display = 'none';
 }
 
 function showStatus(message, type) {

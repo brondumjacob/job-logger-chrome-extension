@@ -22,3 +22,7 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+# Playwright browser binary (~196MB, manually downloaded for the sandboxed
+# test harness — see tests/README.md). Never commit this.
+tests/chromium-linux-arm64.zip
