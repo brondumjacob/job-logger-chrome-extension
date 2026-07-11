@@ -204,6 +204,32 @@ async function main() {
     );
 
     // ------------------------------------------------------------
+    // Field-level "Not found" indicator. A scrape that runs but comes back
+    // with some fields empty (e.g. a site's DOM partially changed) must not
+    // look identical to an untouched field — populateForm() should mark
+    // failed fields distinctly from ones that scraped successfully.
+    // ------------------------------------------------------------
+    await popup.evaluate(() => {
+      window.populateForm({ company: 'Test Co', role: '', location: 'Boston, MA', salary: '', source: 'LinkedIn' });
+    });
+    await popup.waitForTimeout(200);
+
+    const roleBadgeText = (await popup.locator('#role-badge').textContent()).trim();
+    const roleBadgeVisible = await popup.locator('#role-badge').isVisible();
+    record(
+      'Field that failed to scrape shows "Not found" badge, not silent blank',
+      roleBadgeVisible && roleBadgeText === 'Not found',
+      `visible=${roleBadgeVisible} text="${roleBadgeText}"`
+    );
+
+    const companyBadgeText = (await popup.locator('#company-badge').textContent()).trim();
+    record(
+      'Field that DID scrape still shows "Auto" badge (no regression)',
+      companyBadgeText === 'Auto',
+      `got "${companyBadgeText}"`
+    );
+
+    // ------------------------------------------------------------
     // Missing content script simulation. Chrome doesn't inject
     // content_scripts into tabs that were already open before the
     // extension was loaded/reloaded — popup.js's requestJobData() must

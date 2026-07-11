@@ -132,22 +132,16 @@ async function requestJobData() {
 }
 
 function populateForm(data) {
-  if (data.company) {
-    setValue('company', data.company);
-    show('company-badge');
-  }
-  if (data.role) {
-    setValue('role', data.role);
-    show('role-badge');
-  }
-  if (data.location) {
-    setValue('location', data.location);
-    show('location-badge');
-  }
-  if (data.salary) {
-    setValue('salary', data.salary);
-    show('salary-badge');
-  }
+  // populateForm only ever runs after a real response from the content
+  // script (see requestJobData above), so we're on a page it attempted to
+  // scrape — an empty field here means detection failed, not "not attempted."
+  // Surface that distinction instead of leaving a scrape failure looking
+  // identical to an untouched field.
+  applyAutoField('company', data.company);
+  applyAutoField('role', data.role);
+  applyAutoField('location', data.location);
+  applyAutoField('salary', data.salary);
+
   if (data.workArrangement) {
     selectOption('workArrangement', data.workArrangement);
   }
@@ -404,6 +398,22 @@ function setupEventListeners() {
 function setValue(id, value) {
   const el = document.getElementById(id);
   if (el) el.value = value;
+}
+
+function applyAutoField(fieldId, value) {
+  const badge = document.getElementById(fieldId + '-badge');
+  if (value) {
+    setValue(fieldId, value);
+    if (badge) {
+      badge.textContent = 'Auto';
+      badge.classList.remove('auto-badge--missing');
+      badge.style.display = 'inline-block';
+    }
+  } else if (badge) {
+    badge.textContent = 'Not found';
+    badge.classList.add('auto-badge--missing');
+    badge.style.display = 'inline-block';
+  }
 }
 
 function show(id) {

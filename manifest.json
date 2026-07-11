@@ -14,6 +14,7 @@
     "https://www.linkedin.com/*",
     "https://www.indeed.com/*",
     "https://boards.greenhouse.io/*",
+    "https://job-boards.greenhouse.io/*",
     "https://jobs.lever.co/*",
     "https://*.myworkdayjobs.com/*",
     "https://www.glassdoor.com/*",
@@ -31,6 +32,7 @@
         "https://www.linkedin.com/jobs/*",
         "https://www.indeed.com/*",
         "https://boards.greenhouse.io/*",
+        "https://job-boards.greenhouse.io/*",
         "https://jobs.lever.co/*",
         "https://*.myworkdayjobs.com/*",
         "https://www.glassdoor.com/job-listing/*"
