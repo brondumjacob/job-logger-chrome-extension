@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-11T17:30:00Z",
+  "title": "Design System: Job Application Logger",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Terracotta", "canonical": "oklch(0.56 0.150 43)", "tonalRamp": ["#200200", "#4e1000", "#7d2700", "#ba501c", "#de784d", "#f5a98a", "#fcd4c4", "#fbefea"] },
+      "primary-hover": { "role": "primary", "displayName": "Terracotta, deep", "canonical": "oklch(0.46 0.150 43)" },
+      "bg": { "role": "neutral", "displayName": "White", "canonical": "oklch(1.000 0.000 0)" },
+      "surface": { "role": "neutral", "displayName": "Warm Surface", "canonical": "oklch(0.970 0.008 43)" },
+      "border": { "role": "neutral", "displayName": "Warm Border", "canonical": "oklch(0.880 0.012 43)" },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "oklch(0.220 0.015 43)" },
+      "ink-soft": { "role": "neutral", "displayName": "Soft Ink", "canonical": "oklch(0.340 0.015 43)" },
+      "muted": { "role": "neutral", "displayName": "Muted", "canonical": "oklch(0.530 0.020 43)" },
+      "success-deep": { "role": "secondary", "displayName": "Confirmed Green, deep", "canonical": "oklch(0.400 0.110 155)" },
+      "success-tint": { "role": "secondary", "displayName": "Confirmed Green, tint", "canonical": "oklch(0.950 0.035 155)" },
+      "success-border": { "role": "secondary", "displayName": "Confirmed Green, border", "canonical": "oklch(0.720 0.110 155)" },
+      "warning-deep": { "role": "tertiary", "displayName": "Warning Gold, deep", "canonical": "oklch(0.420 0.130 85)" },
+      "warning-tint": { "role": "tertiary", "displayName": "Warning Gold, tint", "canonical": "oklch(0.950 0.045 85)" },
+      "warning-border": { "role": "tertiary", "displayName": "Warning Gold, border", "canonical": "oklch(0.750 0.130 85)" },
+      "error-deep": { "role": "tertiary", "displayName": "Error Red, deep", "canonical": "oklch(0.450 0.190 25)" },
+      "error-tint": { "role": "tertiary", "displayName": "Error Red, tint", "canonical": "oklch(0.950 0.035 25)" },
+      "error-border": { "role": "tertiary", "displayName": "Error Red, border", "canonical": "oklch(0.720 0.160 25)" }
+    },
+    "typographyMeta": {
+      "title": { "displayName": "Title", "purpose": "The single popup header line — the largest text in the UI at 15px." },
+      "body": { "displayName": "Body", "purpose": "Form input values, button labels, modal copy." },
+      "label": { "displayName": "Label", "purpose": "Uppercase field labels above every input." },
+      "caption": { "displayName": "Caption", "purpose": "Auto-detect badges, toast text, modal meta line." }
+    },
+    "shadows": [
+      { "name": "button-hover-lift", "value": "0 4px 12px rgba(186, 80, 28, 0.3)", "purpose": "Primary submit button hover state, paired with a 1px translateY lift. Recolored from navy to the new terracotta primary." },
+      { "name": "modal-elevation", "value": "0 20px 40px rgba(33, 24, 21, 0.2)", "purpose": "Duplicate-resolution modal box, the only true overlay in the system. Recolored from neutral black to the new warm ink." }
+    ],
+    "motion": [
+      { "name": "focus-transition", "value": "border-color 0.15s, box-shadow 0.15s", "purpose": "Input focus state transition." },
+      { "name": "button-lift-transition", "value": "transform 0.1s, box-shadow 0.1s, background 0.1s", "purpose": "Primary button hover lift and fill recolor." },
+      { "name": "toast-fade", "value": "opacity 0.2s", "purpose": "Toast show/hide; no slide, fade only." }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Header Brand Mark",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Briefcase-and-checkmark icon mark paired with the popup title — the same glyph used for the toolbar/extension icon, carried into the UI for brand consistency.",
+      "html": "<div class=\"ds-header-brand\"><svg class=\"ds-header-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"/><path d=\"M3 12h18\"/><path d=\"M9.5 12v2.2l1.6 1.4L15 11.8\"/></svg><h1>Job Application Logger</h1></div>",
+      "css": ".ds-header-brand { display: flex; align-items: center; gap: 8px; } .ds-header-icon { width: 18px; height: 18px; color: #ba501c; flex-shrink: 0; } .ds-header-brand h1 { font-size: 15px; font-weight: 600; color: #211815; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Full-width flat terracotta submit action; the extension's main CTA. No longer a gradient.",
+      "html": "<button class=\"ds-btn-primary\">Log Application</button>",
+      "css": ".ds-btn-primary { width: 100%; padding: 11px; background: #ba501c; color: #ffffff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.1s, box-shadow 0.1s, background 0.1s; } .ds-btn-primary:hover { background: #983000; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(186, 80, 28, 0.3); } .ds-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "White bordered action, used for the modal's 'Log Anyway' choice.",
+      "html": "<button class=\"ds-btn-secondary\">Log Anyway (Add New)</button>",
+      "css": ".ds-btn-secondary { padding: 10px; background: #ffffff; color: #3f3632; border: 1px solid #dfd5d1; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; } .ds-btn-secondary:hover { background: #faf3f1; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Disconnect / destructive action inside the settings panel. Disables when nothing is connected.",
+      "html": "<button class=\"ds-btn-danger\">Disconnect Google Sheets</button>",
+      "css": ".ds-btn-danger { width: 100%; padding: 8px; background: #ffffff; color: #a50013; border: 1px solid #f97770; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; } .ds-btn-danger:hover:not(:disabled) { background: #ffe6e3; } .ds-btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Standard text input used across the job-detail form.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Acme Corp\">",
+      "css": ".ds-input { width: 100%; padding: 8px 10px; border: 1px solid #dfd5d1; border-radius: 6px; font-size: 13px; background: #ffffff; color: #211815; transition: border-color 0.15s, box-shadow 0.15s; } .ds-input:focus { outline: none; border-color: #ba501c; box-shadow: 0 0 0 2px rgba(186, 80, 28, 0.15); }"
+    },
+    {
+      "name": "Auto-Detect Badge",
+      "kind": "chip",
+      "refersTo": "badge-auto",
+      "description": "Inline pill next to a field label showing whether a value was auto-detected from the job page. Uses the same green as the confirmed/connected family.",
+      "html": "<span class=\"ds-badge-auto\">Auto</span>",
+      "css": ".ds-badge-auto { display: inline-block; background: #ddf6e4; color: #00582c; font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 3px; margin-left: 5px; vertical-align: middle; } .ds-badge-auto--missing { background: #faf3f1; color: #766863; }"
+    },
+    {
+      "name": "Semantic Banner",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Tinted, bordered status banner — warning/error/success variants, the system's primary state-communication device. \"Connected\" now shares the success/green family rather than its own blue.",
+      "html": "<div class=\"ds-banner ds-banner--success\">Application logged successfully!</div>",
+      "css": ".ds-banner { border-radius: 8px; padding: 9px 12px; font-size: 13px; } .ds-banner--warning { background: #fcedcd; border: 1px solid #d4a73e; color: #6d4400; } .ds-banner--error { background: #ffe6e3; border: 1px solid #f97770; color: #a50013; } .ds-banner--success { background: #ddf6e4; border: 1px solid #68b986; color: #00582c; }"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "Bottom-anchored transient confirmation pill.",
+      "html": "<div class=\"ds-toast\">Application logged!</div>",
+      "css": ".ds-toast { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); background: #211815; color: #ffffff; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; opacity: 0; transition: opacity 0.2s; } .ds-toast.visible { opacity: 1; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Confirmation Stamp",
+    "overview": "The redesign replaces the generic navy-gradient-on-slate look (the prior baseline, now retired) with a warm terracotta accent on a neutral, near-white ground — the palette of a well-kept field instrument, not a SaaS dashboard. The extension's whole job is to take something that just happened (reading a job posting) and stamp it into permanent record; the visual system leans into that with a literal checkmark-through-a-briefcase mark carried from the toolbar icon into the popup header, and a single warm terracotta used sparingly for exactly the actions that 'confirm' something (the submit button, the primary modal action, focus rings) while everything else stays a calm, warm-tinted neutral. This is explicitly what the interface should NOT look like: another gradient-header B2B tool, another blue-accent dashboard, another pastel-banner-for-every-state template — the previous system named all three by name as anti-references, and this system replaces every instance of them.",
+    "keyCharacteristics": [
+      "One committed brand color (terracotta) carrying roughly 5-10% of the surface — the submit button, the header/toolbar icon mark, focus rings, and the primary modal action. Restrained, not decorative.",
+      "Confirmation states (auto-detected fields, the connected-to-Sheets banner, the success banner) all share one green, unifying \"this is good, this is confirmed\" into a single hue instead of splitting blue/green as the old system did.",
+      "Warm-tinted neutrals throughout (bg, surface, border, ink all carry a faint chroma toward the terracotta hue) instead of the old cool slate-gray family — subtle cohesion, not a \"warm theme.\"",
+      "Flat by default; the only shadows are the submit-button hover lift and the duplicate modal's overlay, unchanged from the prior system's discipline.",
+      "System font stack, no display type — unchanged; the popup format still has no room for a hero moment."
+    ],
+    "rules": [
+      { "name": "The One Brand Color Rule", "body": "Terracotta is the only color that means \"brand\" or \"primary action.\" Every other color in the system is semantic (success/warning/error) or structural (the neutral ramp). If a new element needs emphasis, reach for weight or space before reaching for a second brand color.", "section": "colors" },
+      { "name": "The One Confirmation Color Rule", "body": "Auto-detected, connected, and successfully-saved all render in the same green. Don't reintroduce a separate blue for \"connected\" — that was the old system's split vocabulary, and this system deliberately unified it.", "section": "colors" },
+      { "name": "The No-Display-Type Rule", "body": "There is no heading larger than 15px anywhere in this system — the popup format has no room for a hero moment, and the current design doesn't try to manufacture one.", "section": "typography" },
+      { "name": "The Flat-at-Rest Rule", "body": "Nothing casts a shadow until it's either hovered or is the modal. A settings panel, a banner, a form field — all flat, bordered, at rest.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep terracotta to the handful of \"primary action\" moments (submit, primary modal button, focus ring, icon mark) — per the One Brand Color Rule.",
+      "Do keep \"connected,\" \"auto-detected,\" and \"success\" all in the same green family — per the One Confirmation Color Rule.",
+      "Do keep the warm-tinted neutral ramp (bg/surface/border/ink all carry a faint terracotta chroma) rather than reverting to a cool gray scale."
+    ],
+    "donts": [
+      "Don't reintroduce a gradient on the header or any button — the flat terracotta fill is deliberate, not a placeholder.",
+      "Don't add a second, unrelated brand color \"for variety.\" One accent, used consistently, is the point.",
+      "Don't let the DEV-mode badge drift back to an arbitrary bright yellow — it's part of the warning family now, meaningfully, not just decoratively colored."
+    ]
+  }
+}

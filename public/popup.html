@@ -5,31 +5,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Job Application Logger</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      /* Brand */
+      --primary: #ba501c;
+      --primary-hover: #983000;
+      --focus-ring: rgba(186, 80, 28, 0.15);
+
+      /* Neutrals */
+      --bg: #ffffff;
+      --surface: #faf3f1;
+      --border: #dfd5d1;
+      --ink: #211815;
+      --ink-soft: #3f3632;
+      --muted: #766863;
+
+      /* Semantic: success / confirmed / connected */
+      --success-deep: #00582c;
+      --success-tint: #ddf6e4;
+      --success-border: #68b986;
+
+      /* Semantic: warning / dev / caution */
+      --warning-deep: #6d4400;
+      --warning-tint: #fcedcd;
+      --warning-border: #d4a73e;
+
+      /* Semantic: error / destructive */
+      --error-deep: #a50013;
+      --error-tint: #ffe6e3;
+      --error-border: #f97770;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: inherit; }
 
     body {
       width: 400px;
       min-height: 400px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f8fafc;
+      background: var(--bg);
     }
 
     .header {
-      background: linear-gradient(135deg, #1e3a5f 0%, #2e5a8f 100%);
-      color: white;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      color: var(--ink);
       padding: 14px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
+    .header-brand { display: flex; align-items: center; gap: 8px; }
+    .header-icon { width: 18px; height: 18px; color: var(--primary); flex-shrink: 0; }
     .header h1 { font-size: 15px; font-weight: 600; }
 
     .header-actions { display: flex; gap: 8px; align-items: center; }
 
     .dev-badge {
-      background: #fbbf24;
-      color: #78350f;
+      background: var(--warning-tint);
+      color: var(--warning-deep);
       font-size: 10px;
       font-weight: 700;
       padding: 2px 6px;
@@ -39,48 +72,56 @@
     .icon-btn {
       background: none;
       border: none;
-      color: rgba(255,255,255,0.8);
+      color: var(--muted);
       cursor: pointer;
       padding: 4px;
       border-radius: 4px;
       display: flex;
       align-items: center;
-      transition: color 0.15s;
+      transition: color 0.15s, background 0.15s;
     }
-    .icon-btn:hover { color: white; background: rgba(255,255,255,0.15); }
+    .icon-btn:hover { color: var(--ink); background: rgba(33, 24, 21, 0.06); }
 
-    .content { padding: 14px 16px; }
+    /* Fixed height budget so the whole popup never exceeds Chrome's default
+       extension-popup viewport: header (~46px) + this max-height (460px) +
+       .form-footer (~80px) ≈ 586px. Form fields scroll internally; the
+       submit button and status line stay pinned and always visible. */
+    .content {
+      padding: 14px 16px;
+      max-height: 460px;
+      overflow-y: auto;
+    }
 
     /* Settings panel */
     .settings-panel {
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 8px;
       padding: 12px;
       margin-bottom: 14px;
     }
-    .settings-panel h3 { font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .sheet-info { font-size: 12px; color: #64748b; margin-bottom: 10px; }
-    .sheet-info a { color: #2563eb; text-decoration: none; }
+    .settings-panel h2 { font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .sheet-info { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .sheet-info a { color: var(--primary); text-decoration: none; }
     .sheet-info a:hover { text-decoration: underline; }
 
     /* Auth */
     .warning-banner {
-      background: #fef3c7;
-      border: 1px solid #f59e0b;
+      background: var(--warning-tint);
+      border: 1px solid var(--warning-border);
       border-radius: 8px;
       padding: 10px 12px;
       margin-bottom: 14px;
       font-size: 13px;
-      color: #92400e;
+      color: var(--warning-deep);
     }
 
     .google-btn {
       width: 100%;
       padding: 11px;
       background: white;
-      color: #374151;
-      border: 1px solid #d1d5db;
+      color: var(--ink-soft);
+      border: 1px solid var(--border);
       border-radius: 8px;
       font-size: 14px;
       font-weight: 500;
@@ -91,23 +132,27 @@
       gap: 10px;
       margin-bottom: 14px;
     }
-    .google-btn:hover { background: #f9fafb; border-color: #9ca3af; }
+    .google-btn:hover { background: var(--surface); border-color: var(--muted); }
     .google-icon { width: 18px; height: 18px; }
 
     .connected-banner {
-      background: #dbeafe;
-      border: 1px solid #3b82f6;
+      background: var(--success-tint);
+      border: 1px solid var(--success-border);
       border-radius: 8px;
       padding: 9px 12px;
       margin-bottom: 14px;
       font-size: 12px;
-      color: #1e40af;
+      color: var(--success-deep);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     .disconnect-link {
-      color: #1e40af;
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      color: var(--success-deep);
       text-decoration: underline;
       cursor: pointer;
       font-size: 11px;
@@ -115,22 +160,22 @@
 
     /* Error/Success banners */
     .error-banner {
-      background: #fee2e2;
-      border: 1px solid #ef4444;
+      background: var(--error-tint);
+      border: 1px solid var(--error-border);
       border-radius: 8px;
       padding: 9px 12px;
       margin-bottom: 14px;
       font-size: 13px;
-      color: #991b1b;
+      color: var(--error-deep);
     }
     .success-banner {
-      background: #dcfce7;
-      border: 1px solid #22c55e;
+      background: var(--success-tint);
+      border: 1px solid var(--success-border);
       border-radius: 8px;
       padding: 9px 12px;
       margin-bottom: 14px;
       font-size: 13px;
-      color: #166534;
+      color: var(--success-deep);
     }
 
     /* Form */
@@ -140,24 +185,24 @@
       display: block;
       font-size: 11px;
       font-weight: 600;
-      color: #374151;
+      color: var(--ink-soft);
       margin-bottom: 3px;
       text-transform: uppercase;
       letter-spacing: 0.03em;
     }
 
-    .form-group label .required { color: #ef4444; }
+    .form-group label .required { color: var(--error-deep); }
 
     .form-group input,
     .form-group select,
     .form-group textarea {
       width: 100%;
       padding: 8px 10px;
-      border: 1px solid #d1d5db;
+      border: 1px solid var(--border);
       border-radius: 6px;
       font-size: 13px;
       background: white;
-      color: #111827;
+      color: var(--ink);
       transition: border-color 0.15s, box-shadow 0.15s;
     }
 
@@ -165,8 +210,8 @@
     .form-group select:focus,
     .form-group textarea:focus {
       outline: none;
-      border-color: #2e5a8f;
-      box-shadow: 0 0 0 2px rgba(46, 90, 143, 0.12);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--focus-ring);
     }
 
     .form-group textarea { resize: vertical; min-height: 52px; }
@@ -174,10 +219,24 @@
     .form-row { display: flex; gap: 10px; }
     .form-row .form-group { flex: 1; }
 
+    /* Section break between core/required fields and supplementary detail
+       fields (Recruiter, Key Details, Next Steps, Notes) — 20px/12px extend
+       the existing 6/8/10/12/14/16 spacing scale for this one larger gap. */
+    .section-divider {
+      margin: 20px 0 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
     .auto-badge {
       display: inline-block;
-      background: #dcfce7;
-      color: #166534;
+      background: var(--success-tint);
+      color: var(--success-deep);
       font-size: 9px;
       font-weight: 600;
       padding: 1px 5px;
@@ -187,46 +246,59 @@
     }
 
     .auto-badge.auto-badge--missing {
-      background: #f3f4f6;
-      color: #6b7280;
+      background: var(--surface);
+      color: var(--muted);
     }
 
     /* Submit */
     .submit-btn {
       width: 100%;
       padding: 11px;
-      background: linear-gradient(135deg, #1e3a5f 0%, #2e5a8f 100%);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      margin-top: 14px;
-      transition: transform 0.1s, box-shadow 0.1s;
+      transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
     }
     .submit-btn:hover:not(:disabled) {
+      background: var(--primary-hover);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
+      box-shadow: 0 4px 12px rgba(186, 80, 28, 0.3);
     }
     .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Pinned footer, sibling of the scrolling .content — keeps the submit
+       button and status line visible without scrolling, regardless of how
+       tall the form above grows. */
+    .form-footer {
+      position: sticky;
+      bottom: 0;
+      background: var(--bg);
+      padding: 10px 16px 12px;
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
+    }
 
     .btn-danger {
       width: 100%;
       padding: 8px;
       background: white;
-      color: #dc2626;
-      border: 1px solid #fca5a5;
+      color: var(--error-deep);
+      border: 1px solid var(--error-border);
       border-radius: 6px;
       font-size: 12px;
       font-weight: 500;
       cursor: pointer;
     }
-    .btn-danger:hover { background: #fef2f2; }
+    .btn-danger:hover:not(:disabled) { background: var(--error-tint); }
+    .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .status-text {
       text-align: center;
-      color: #6b7280;
+      color: var(--muted);
       font-size: 12px;
       margin-top: 6px;
     }
@@ -235,7 +307,7 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(33, 24, 21, 0.45);
       z-index: 100;
       display: flex;
       align-items: center;
@@ -246,15 +318,15 @@
       border-radius: 10px;
       padding: 20px;
       width: 340px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      box-shadow: 0 20px 40px rgba(33, 24, 21, 0.2);
     }
-    .modal-box h3 { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 8px; }
-    .modal-box p { font-size: 13px; color: #374151; margin-bottom: 6px; line-height: 1.5; }
-    .modal-meta { font-size: 11px; color: #6b7280; margin-bottom: 16px; }
+    .modal-box h3 { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+    .modal-box p { font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; line-height: 1.5; }
+    .modal-meta { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
     .modal-actions { display: flex; flex-direction: column; gap: 8px; }
     .btn-primary {
       padding: 10px;
-      background: linear-gradient(135deg, #1e3a5f 0%, #2e5a8f 100%);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 7px;
@@ -262,28 +334,28 @@
       font-weight: 600;
       cursor: pointer;
     }
-    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:hover { background: var(--primary-hover); }
     .btn-secondary {
       padding: 10px;
       background: white;
-      color: #374151;
-      border: 1px solid #d1d5db;
+      color: var(--ink-soft);
+      border: 1px solid var(--border);
       border-radius: 7px;
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
     }
-    .btn-secondary:hover { background: #f9fafb; }
+    .btn-secondary:hover { background: var(--surface); }
     .btn-cancel {
       padding: 8px;
       background: none;
-      color: #9ca3af;
+      color: var(--muted);
       border: none;
       font-size: 12px;
       cursor: pointer;
       text-align: center;
     }
-    .btn-cancel:hover { color: #6b7280; }
+    .btn-cancel:hover { color: var(--ink-soft); }
 
     /* Toast */
     .toast {
@@ -291,7 +363,7 @@
       bottom: 14px;
       left: 50%;
       transform: translateX(-50%);
-      background: #111827;
+      background: var(--ink);
       color: white;
       padding: 8px 16px;
       border-radius: 20px;
@@ -309,7 +381,15 @@
 
   <!-- Header -->
   <div class="header">
-    <h1>Job Application Logger</h1>
+    <div class="header-brand">
+      <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3" y="7" width="18" height="13" rx="2"/>
+        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        <path d="M3 12h18"/>
+        <path d="M9.5 12v2.2l1.6 1.4L15 11.8"/>
+      </svg>
+      <h1>Job Application Logger</h1>
+    </div>
     <div class="header-actions">
       <span id="dev-mode-badge" class="dev-badge" style="display:none;">DEV</span>
       <button id="settings-btn" class="icon-btn" title="Settings">
@@ -326,7 +406,7 @@
     <!-- Settings panel (hidden by default) -->
     <div id="settings-panel" style="display:none;">
       <div class="settings-panel">
-        <h3>Settings</h3>
+        <h2>Settings</h2>
         <div id="sheet-info" class="sheet-info">Not connected to Google Sheets.</div>
         <button id="btn-disconnect" class="btn-danger">Disconnect Google Sheets</button>
       </div>
@@ -349,7 +429,7 @@
     <!-- Connected banner (shown when authenticated, prod mode) -->
     <div id="connected-banner" class="connected-banner" style="display:none;">
       <span>Connected to Google Sheets</span>
-      <span id="disconnect-link" class="disconnect-link">Disconnect</span>
+      <button id="disconnect-link" class="disconnect-link" type="button">Disconnect</button>
     </div>
 
     <!-- Content-script-missing warning (shown when the active job page wasn't scrapeable) -->
@@ -364,11 +444,11 @@
 
       <div class="form-row">
         <div class="form-group" style="flex:2">
-          <label>Company <span class="required">*</span> <span id="company-badge" class="auto-badge" style="display:none;">Auto</span></label>
-          <input type="text" id="company" placeholder="Acme Corp" required>
+          <label for="company">Company <span class="required">*</span> <span id="company-badge" class="auto-badge" style="display:none;">Auto</span></label>
+          <input type="text" id="company" placeholder="Acme Corp" required aria-describedby="company-badge">
         </div>
         <div class="form-group" style="flex:1">
-          <label>Tier</label>
+          <label for="tier">Tier</label>
           <select id="tier">
             <option value="Tier 2">Tier 2</option>
             <option value="Tier 1">Tier 1</option>
@@ -378,96 +458,108 @@
       </div>
 
       <div class="form-group">
-        <label>Role <span class="required">*</span> <span id="role-badge" class="auto-badge" style="display:none;">Auto</span></label>
-        <input type="text" id="role" placeholder="Fund Accountant" required>
+        <label for="role">Role <span class="required">*</span> <span id="role-badge" class="auto-badge" style="display:none;">Auto</span></label>
+        <input type="text" id="role" placeholder="Fund Accountant" required aria-describedby="role-badge">
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Status</label>
+          <label for="status">Status</label>
           <select id="status">
-            <option value="Applied" selected>Applied</option>
-            <option value="Not Yet Applied">Not Yet Applied</option>
-            <option value="Phone Screen">Phone Screen</option>
-            <option value="Interview Scheduled">Interview Scheduled</option>
-            <option value="Interviewing">Interviewing</option>
-            <option value="Interview 1">Interview 1</option>
-            <option value="Interview 2">Interview 2</option>
-            <option value="Final Round">Final Round</option>
-            <option value="Offer">Offer</option>
-            <option value="Rejected">Rejected</option>
-            <option value="Withdrawn">Withdrawn</option>
-            <option value="Ghosted">Ghosted</option>
+            <optgroup label="Common">
+              <option value="Applied" selected>Applied</option>
+              <option value="Not Yet Applied">Not Yet Applied</option>
+              <option value="Phone Screen">Phone Screen</option>
+              <option value="Interview Scheduled">Interview Scheduled</option>
+              <option value="Rejected">Rejected</option>
+            </optgroup>
+            <optgroup label="More">
+              <option value="Interviewing">Interviewing</option>
+              <option value="Interview 1">Interview 1</option>
+              <option value="Interview 2">Interview 2</option>
+              <option value="Final Round">Final Round</option>
+              <option value="Offer">Offer</option>
+              <option value="Withdrawn">Withdrawn</option>
+              <option value="Ghosted">Ghosted</option>
+            </optgroup>
           </select>
         </div>
         <div class="form-group">
-          <label>Source <span id="source-badge" class="auto-badge" style="display:none;">Auto</span></label>
-          <select id="source">
+          <label for="source">Source <span id="source-badge" class="auto-badge" style="display:none;">Auto</span></label>
+          <select id="source" aria-describedby="source-badge">
             <option value="">Select...</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="Indeed">Indeed</option>
-            <option value="Glassdoor">Glassdoor</option>
-            <option value="Greenhouse">Greenhouse</option>
-            <option value="Lever">Lever</option>
-            <option value="Workday">Workday</option>
-            <option value="Company Website">Company Website</option>
-            <option value="Recruiter">Recruiter</option>
-            <option value="Referral">Referral</option>
-            <option value="Other">Other</option>
+            <optgroup label="Common">
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="Indeed">Indeed</option>
+              <option value="Company Website">Company Website</option>
+              <option value="Referral">Referral</option>
+            </optgroup>
+            <optgroup label="More">
+              <option value="Glassdoor">Glassdoor</option>
+              <option value="Greenhouse">Greenhouse</option>
+              <option value="Lever">Lever</option>
+              <option value="Workday">Workday</option>
+              <option value="Recruiter">Recruiter</option>
+              <option value="Other">Other</option>
+            </optgroup>
           </select>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label>Salary <span id="salary-badge" class="auto-badge" style="display:none;">Auto</span></label>
-          <input type="text" id="salary" placeholder="$90,000–$110,000">
+          <label for="salary">Salary <span id="salary-badge" class="auto-badge" style="display:none;">Auto</span></label>
+          <input type="text" id="salary" placeholder="$90,000–$110,000" aria-describedby="salary-badge">
         </div>
         <div class="form-group">
-          <label>Location <span id="location-badge" class="auto-badge" style="display:none;">Auto</span></label>
-          <input type="text" id="location" placeholder="Chicago, IL">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Work Arrangement</label>
-          <select id="workArrangement">
-            <option value="">Select...</option>
-            <option value="Remote">Remote</option>
-            <option value="Hybrid">Hybrid</option>
-            <option value="On-site">On-site</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Recruiter</label>
-          <input type="text" id="recruiter" placeholder="Jane Smith">
+          <label for="location">Location <span id="location-badge" class="auto-badge" style="display:none;">Auto</span></label>
+          <input type="text" id="location" placeholder="Chicago, IL" aria-describedby="location-badge">
         </div>
       </div>
 
       <div class="form-group">
-        <label>Key Details</label>
+        <label for="workArrangement">Work Arrangement</label>
+        <select id="workArrangement">
+          <option value="">Select...</option>
+          <option value="Remote">Remote</option>
+          <option value="Hybrid">Hybrid</option>
+          <option value="On-site">On-site</option>
+        </select>
+      </div>
+
+      <div class="section-divider">Additional Details</div>
+
+      <div class="form-group">
+        <label for="recruiter">Recruiter</label>
+        <input type="text" id="recruiter" placeholder="Jane Smith">
+      </div>
+
+      <div class="form-group">
+        <label for="keyDetails">Key Details</label>
         <input type="text" id="keyDetails" placeholder="Key requirements, perks, etc.">
       </div>
 
       <div class="form-group">
-        <label>Next Steps</label>
+        <label for="nextSteps">Next Steps</label>
         <input type="text" id="nextSteps" placeholder="Follow up on...">
       </div>
 
       <div class="form-group">
-        <label>Notes</label>
+        <label for="notes">Notes</label>
         <textarea id="notes" placeholder="Any additional notes..."></textarea>
       </div>
 
       <div class="form-group">
-        <label>URL <span id="url-badge" class="auto-badge" style="display:none;">Auto</span></label>
-        <input type="text" id="url" placeholder="Job posting URL">
+        <label for="url">URL <span id="url-badge" class="auto-badge" style="display:none;">Auto</span></label>
+        <input type="text" id="url" placeholder="Job posting URL" aria-describedby="url-badge">
       </div>
 
-      <button type="submit" class="submit-btn" id="submit-btn">Log Application</button>
-      <p class="status-text" id="status-text"></p>
     </form>
+  </div>
+
+  <div class="form-footer">
+    <button type="submit" form="job-form" class="submit-btn" id="submit-btn">Log Application</button>
+    <p class="status-text" id="status-text"></p>
   </div>
 
   <!-- Duplicate Modal -->

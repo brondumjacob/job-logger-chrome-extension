@@ -249,6 +249,7 @@ async function loadSheetInfo() {
     const response = await chrome.runtime.sendMessage({ type: 'GET_SHEET_INFO' });
     const info = response?.info;
     const el = document.getElementById('sheet-info');
+    const disconnectBtn = document.getElementById('btn-disconnect');
     if (info) {
       const link = info.url && info.url !== '#'
         ? `<a href="${info.url}" target="_blank">${info.name}</a>`
@@ -258,8 +259,12 @@ async function loadSheetInfo() {
         ? ` · Synced ${new Date(info.lastSynced).toLocaleTimeString()}`
         : '';
       el.innerHTML = `Connected to ${link}${rows}${synced}`;
+      disconnectBtn.disabled = false;
     } else {
       el.textContent = 'Not connected to Google Sheets.';
+      // Nothing to disconnect — keep the button visible but inert so the
+      // panel never asserts a connection that doesn't exist.
+      disconnectBtn.disabled = true;
     }
   } catch (e) {
     // ignore
@@ -465,7 +470,7 @@ function hideScrapeWarning() {
 function showStatus(message, type) {
   const el = document.getElementById('status-text');
   el.textContent = message;
-  el.style.color = type === 'success' ? '#166534' : type === 'error' ? '#991b1b' : '#6b7280';
+  el.style.color = type === 'success' ? '#00582c' : type === 'error' ? '#a50013' : '#766863';
 }
 
 let toastTimer;
