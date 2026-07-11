@@ -1,6 +1,6 @@
 # Privacy Policy — Job Application Logger
 
-**Effective date:** [FILL IN — date you publish this]
+**Effective date:** 2026-07-11
 **Contact:** jacob.t.brondum@gmail.com *(confirm this is the email you want listed publicly — it will appear in the Chrome Web Store listing and the Google OAuth consent screen)*
 
 This document describes what Job Application Logger ("the extension") does with data, verified directly against the extension's source code as of 2026-07-11 — not boilerplate.
