@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build && node scripts/build.js",
+    "build:prod": "node scripts/build-prod.mjs",
     "preview": "vite preview"
   },
   "devDependencies": {

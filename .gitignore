@@ -26,3 +26,9 @@ coverage/
 # Playwright browser binary (~196MB, manually downloaded for the sandboxed
 # test harness — see tests/README.md). Never commit this.
 tests/chromium-linux-arm64.zip
+
+# Extension signing keypair (used only to pin a stable extension ID across
+# local unpacked loads and the Chrome Web Store upload — see manifest.json's
+# "key" field, which holds the PUBLIC half and is fine to commit). The
+# private key itself should never be committed.
+keys/extension-key.pem
