@@ -16,6 +16,10 @@ dist/
 .vscode/
 .idea/
 
+# Claude Code local/machine-specific config (holds MCP server credentials —
+# never commit; see .claude/settings.json for the shared, secret-free config)
+.claude/settings.local.json
+
 # Test coverage
 coverage/
 
@@ -27,8 +31,13 @@ coverage/
 # test harness — see tests/README.md). Never commit this.
 tests/chromium-linux-arm64.zip
 
-# Extension signing keypair (used only to pin a stable extension ID across
-# local unpacked loads and the Chrome Web Store upload — see manifest.json's
-# "key" field, which holds the PUBLIC half and is fine to commit). The
-# private key itself should never be committed.
+# Extension signing keypair (pins a stable extension ID for LOCAL unpacked
+# loads only — the Chrome Web Store rejects any upload whose manifest
+# contains a "key" field, so this ID does NOT carry through to the
+# published extension; see docs/PUBLISHING_CHECKLIST.md). manifest.json's
+# "key" field holds the PUBLIC half and is fine to commit. The private key
+# itself should never be committed.
 keys/extension-key.pem
+
+# CWS upload package (built by npm run package:cws — has "key" stripped)
+job-application-logger-cws.zip
