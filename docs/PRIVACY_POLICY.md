@@ -1,3 +1,6 @@
+---
+---
+
 # Privacy Policy — Job Application Logger
 
 **Effective date:** 2026-07-11

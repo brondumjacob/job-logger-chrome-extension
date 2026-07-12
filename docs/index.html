@@ -4,26 +4,109 @@
 <meta charset="utf-8">
 <title>Job Application Logger</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A Chrome extension that logs job applications to Google Sheets in one click — auto-detects company, role, salary & location from LinkedIn, Indeed, Greenhouse, Lever, Workday & Glassdoor.">
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 640px; margin: 4rem auto; padding: 0 1.5rem; line-height: 1.6; color: #1a1a1a; }
-  h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
-  p.tagline { color: #555; margin-top: 0; }
-  a { color: #b8562f; }
+  :root {
+    --primary: #ba501c;
+    --primary-hover: #983000;
+    --ink: #211815;
+    --ink-soft: #3f3632;
+    --muted: #6b6560;
+    --border: #e3ddd9;
+    --surface: #faf3f1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  header { margin-bottom: 2rem; }
+  h1 { font-size: 2rem; margin: 0 0 0.35rem; }
+  p.tagline { color: var(--muted); margin: 0 0 1.5rem; font-size: 1.05rem; }
+  a { color: var(--primary); }
+  a:hover { color: var(--primary-hover); }
+  .cta {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.7rem 1.4rem;
+    border-radius: 8px;
+  }
+  .cta:hover { background: var(--primary-hover); color: white; }
+  .screenshot {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 2rem 0;
+    box-shadow: 0 8px 24px rgba(33, 24, 21, 0.08);
+  }
+  h2 {
+    font-size: 1.2rem;
+    margin: 2.5rem 0 0.75rem;
+    color: var(--ink-soft);
+  }
   ul { padding-left: 1.25rem; }
+  li { margin-bottom: 0.4rem; }
+  .boards { color: var(--muted); font-size: 0.95rem; }
+  .trust {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 2.5rem;
+    font-size: 0.95rem;
+  }
+  .trust p:first-child { margin-top: 0; }
+  .trust ul { margin: 0.5rem 0 0; }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
 </style>
 </head>
 <body>
-<h1>Job Application Logger</h1>
-<p class="tagline">A Chrome extension that logs job applications to Google Sheets with one click.</p>
 
-<p>It auto-detects company, role, location, salary, and source from job posting
-pages on LinkedIn, Indeed, Greenhouse, Lever, Workday, and Glassdoor, and writes
-the entry directly to a Google Sheet you choose.</p>
+<header>
+  <h1>Job Application Logger</h1>
+  <p class="tagline">Log job applications to Google Sheets in one click.</p>
+  <a class="cta" href="https://chromewebstore.google.com/detail/job-application-logger/padllflgokcifhhebemjkokedhfolnpc">Install from the Chrome Web Store</a>
+</header>
 
+<img class="screenshot" src="./screenshots/cws-screenshot-1-autofill.png" alt="Job Application Logger popup showing auto-filled company, role, salary, and location fields over a job posting page">
+
+<p>Job Application Logger saves you from tab-switching and copy-pasting every time you apply to a job. Click the extension icon on a job posting and it auto-fills the company, role, location, salary, and work arrangement straight from the page. Fill in anything it missed, pick a status, and click Log Application — it's saved to a Google Sheet in your own Google Drive.</p>
+
+<p class="boards">Auto-detection works on LinkedIn, Indeed, Greenhouse, Lever, Workday, and Glassdoor. Manual entry works everywhere else.</p>
+
+<h2>Features</h2>
 <ul>
-  <li><a href="https://chromewebstore.google.com/detail/job-application-logger/padllflgokcifhhebemjkokedhfolnpc">Install from the Chrome Web Store</a></li>
-  <li><a href="./PRIVACY_POLICY.html">Privacy Policy</a></li>
-  <li><a href="https://github.com/brondumjacob/job-logger-chrome-extension">Source code</a></li>
+  <li>Auto-detects job details from 6 major job boards</li>
+  <li>Manual entry works everywhere else</li>
+  <li>Duplicate detection — warns you if you've already logged that company/role, with the option to update the existing entry instead of creating a new one</li>
+  <li>Status tracking (Applied, Phone Screen, Interview, Offer, Rejected, and more)</li>
+  <li>Everything lives in a spreadsheet you own — export it, chart it, share it, whatever you want</li>
 </ul>
+
+<div class="trust">
+  <p><strong>Privacy, in short:</strong> your data goes straight from your browser to your own Google Sheet, authenticated with your own Google account. There's no backend server, no analytics, no tracking, and nothing is ever sold or shared.</p>
+  <ul>
+    <li><a href="./PRIVACY_POLICY.html">Privacy Policy</a></li>
+    <li><a href="./TERMS_OF_SERVICE.html">Terms of Service</a></li>
+  </ul>
+</div>
+
+<footer>
+  <p><a href="https://github.com/brondumjacob/job-logger-chrome-extension">Source code on GitHub</a> &middot; Questions? <a href="mailto:jacob.t.brondum@gmail.com">jacob.t.brondum@gmail.com</a></p>
+</footer>
+
 </body>
 </html>
