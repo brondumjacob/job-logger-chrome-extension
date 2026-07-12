@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CONSTANTS_FILE = join(ROOT, 'src', 'shared', 'constants.js');
 const POPUP_FILE = join(ROOT, 'public', 'popup.js');
+const CONTENT_FILE = join(ROOT, 'src', 'content', 'content.js');
 
 // Exact-string patches, not regex — if the source has changed and these
 // strings no longer match, we want a loud failure, not a silent no-op
@@ -34,6 +35,11 @@ const PATCHES = [
     file: POPUP_FILE,
     dev: 'const DEV_MODE = true; // Must match background.js DEV_MODE',
     prod: 'const DEV_MODE = false; // Must match background.js DEV_MODE',
+  },
+  {
+    file: CONTENT_FILE,
+    dev: 'const DEV_MODE = true;',
+    prod: 'const DEV_MODE = false;',
   },
 ];
 
@@ -70,7 +76,8 @@ if (built) {
   console.log('');
   console.log('[build:prod] Done. dist/ was built with DEV_MODE=false (real Google OAuth + Sheets).');
   console.log('[build:prod] Source is back to DEV_MODE=true for local dev — this is expected and correct.');
-  console.log('[build:prod] Zip the dist/ folder now for Chrome Web Store upload. Do not hand-edit');
-  console.log('[build:prod] dist/ afterward, or DEV_MODE could drift from what you tested — rerun');
-  console.log('[build:prod] this script instead if you need to rebuild.');
+  console.log('[build:prod] Run `npm run package:cws` now to build the Chrome Web Store upload zip —');
+  console.log('[build:prod] it strips manifest.json\'s "key" field, which the Web Store rejects, and');
+  console.log('[build:prod] dist/ still has it. Do not hand-zip dist/ directly, and do not hand-edit');
+  console.log('[build:prod] dist/ afterward — rerun this script instead if you need to rebuild.');
 }

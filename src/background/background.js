@@ -305,6 +305,17 @@ async function appendRow(token, sheetId, data) {
   return response.json();
 }
 
+// Rows are written with valueInputOption=USER_ENTERED so legitimate dates/
+// numbers still parse as such. That also means a leading =, +, -, or @ is
+// interpreted as a live formula by Sheets — and several of these fields
+// (company, role, salary, location, url) come from scraping an arbitrary
+// third-party job posting, so a malicious page could plant a formula that
+// executes in the user's own spreadsheet. Prefixing a leading apostrophe
+// forces Sheets to store the value as plain text instead.
+function sanitizeCell(value) {
+  return typeof value === 'string' && /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+}
+
 // Build row array matching UNIFIED_COLUMNS order (A-N)
 function buildRowArray(data) {
   return [
@@ -322,7 +333,7 @@ function buildRowArray(data) {
     data.nextSteps || '',                                  // L
     data.notes || '',                                      // M
     data.url || ''                                         // N
-  ];
+  ].map(sanitizeCell);
 }
 
 // ============================================
