@@ -251,14 +251,24 @@ async function loadSheetInfo() {
     const el = document.getElementById('sheet-info');
     const disconnectBtn = document.getElementById('btn-disconnect');
     if (info) {
-      const link = info.url && info.url !== '#'
-        ? `<a href="${info.url}" target="_blank">${info.name}</a>`
-        : `<strong>${info.name}</strong>`;
-      const rows = info.rowCount !== undefined ? ` · ${info.rowCount} rows` : '';
-      const synced = info.lastSynced
-        ? ` · Synced ${new Date(info.lastSynced).toLocaleTimeString()}`
-        : '';
-      el.innerHTML = `Connected to ${link}${rows}${synced}`;
+      el.textContent = 'Connected to ';
+      if (info.url && info.url !== '#') {
+        const link = document.createElement('a');
+        link.href = info.url;
+        link.target = '_blank';
+        link.textContent = info.name;
+        el.appendChild(link);
+      } else {
+        const strong = document.createElement('strong');
+        strong.textContent = info.name;
+        el.appendChild(strong);
+      }
+      if (info.rowCount !== undefined) {
+        el.appendChild(document.createTextNode(` · ${info.rowCount} rows`));
+      }
+      if (info.lastSynced) {
+        el.appendChild(document.createTextNode(` · Synced ${new Date(info.lastSynced).toLocaleTimeString()}`));
+      }
       disconnectBtn.disabled = false;
     } else {
       el.textContent = 'Not connected to Google Sheets.';

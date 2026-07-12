@@ -3,6 +3,10 @@
  * Injected into job posting pages to scrape job details
  */
 
+// Must match DEV_MODE in src/shared/constants.js — content scripts can't
+// use ES module imports, so this is kept in sync manually.
+const DEV_MODE = true;
+
 // ============================================
 // SCRAPERS
 // ============================================
@@ -382,11 +386,11 @@ function getScraper(url) {
 function scrapeJobData() {
   const url = window.location.href;
   const scraper = getScraper(url);
-  console.log(`[Job Logger] Using ${scraper.name} scraper`);
-  
+  if (DEV_MODE) console.log(`[Job Logger] Using ${scraper.name} scraper`);
+
   try {
     const data = scraper.scrape(document);
-    console.log('[Job Logger] Scraped data:', data);
+    if (DEV_MODE) console.log('[Job Logger] Scraped data:', data);
     return {
       ...data,
       url: url,
@@ -400,8 +404,9 @@ function scrapeJobData() {
 
 // Listen for messages from popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('[Job Logger] Content script received message:', message.type);
-  
+  if (sender.id !== chrome.runtime.id) return false;
+  if (DEV_MODE) console.log('[Job Logger] Content script received message:', message.type);
+
   if (message.type === 'GET_JOB_DATA') {
     const jobData = scrapeJobData();
     sendResponse({ success: true, data: jobData });
@@ -410,4 +415,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Notify that content script loaded
-console.log('[Job Logger] Content script loaded on:', window.location.href);
+if (DEV_MODE) console.log('[Job Logger] Content script loaded on:', window.location.href);

@@ -21,7 +21,11 @@ const MOCK_SHEET_INFO = {
 // ============================================
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('[Job Logger Background] Message:', message.type, DEV_MODE ? '(DEV)' : '(PROD)');
+  if (sender.id !== chrome.runtime.id) return false;
+
+  if (DEV_MODE) {
+    console.log('[Job Logger Background] Message:', message.type, '(DEV)');
+  }
 
   switch (message.type) {
     case 'CHECK_AUTH':
@@ -383,7 +387,7 @@ async function mockUpdateRow(rowIndex, data) {
 async function checkAuthentication() {
   try {
     const token = await getAuthToken(false);
-    return { authenticated: !!token, token };
+    return { authenticated: !!token };
   } catch (e) {
     return { authenticated: false };
   }
@@ -393,8 +397,7 @@ async function authenticate() {
   try {
     const token = await getAuthToken(true);
     if (token) {
-      await chrome.storage.sync.set({ authToken: token });
-      return { success: true, token };
+      return { success: true };
     }
     return { success: false, error: 'No token received' };
   } catch (err) {
