@@ -250,6 +250,14 @@ async function loadSheetInfo() {
     const info = response?.info;
     const el = document.getElementById('sheet-info');
     const disconnectBtn = document.getElementById('btn-disconnect');
+    const openBtn = document.getElementById('open-sheet-btn');
+    if (info && info.url && info.url !== '#') {
+      openBtn.href = info.url;
+      openBtn.style.display = 'flex';
+    } else {
+      openBtn.style.display = 'none';
+      openBtn.removeAttribute('href');
+    }
     if (info) {
       el.textContent = 'Connected to ';
       if (info.url && info.url !== '#') {

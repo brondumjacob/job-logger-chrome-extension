@@ -78,6 +78,7 @@
       border-radius: 4px;
       display: flex;
       align-items: center;
+      text-decoration: none;
       transition: color 0.15s, background 0.15s;
     }
     .icon-btn:hover { color: var(--ink); background: rgba(33, 24, 21, 0.06); }
@@ -392,6 +393,14 @@
     </div>
     <div class="header-actions">
       <span id="dev-mode-badge" class="dev-badge" style="display:none;">DEV</span>
+      <a id="open-sheet-btn" class="icon-btn" target="_blank" rel="noopener noreferrer"
+         title="Open my Google Sheet" aria-label="Open my Google Sheet" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="4" y="3" width="16" height="18" rx="2"/>
+          <path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3v18"/>
+        </svg>
+      </a>
       <button id="settings-btn" class="icon-btn" title="Settings">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="3"/>
